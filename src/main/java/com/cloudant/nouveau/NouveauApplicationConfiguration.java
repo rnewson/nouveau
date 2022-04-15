@@ -14,8 +14,9 @@
 
 package com.cloudant.nouveau;
 
+import java.nio.file.Path;
+
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,8 +33,7 @@ public class NouveauApplicationConfiguration extends Configuration {
     @Min(30)
     private int idleSeconds = -1;
 
-    @NotEmpty
-    private String rootDir = "target/indexes";
+    private Path rootDir = Path.of("target/indexes");
 
     @JsonProperty
     public void setMaxIndexesOpen(int maxIndexesOpen) {
@@ -63,11 +63,11 @@ public class NouveauApplicationConfiguration extends Configuration {
     }
 
     @JsonProperty
-    public void setRootDir(String rootDir) {
+    public void setRootDir(Path rootDir) {
         this.rootDir = rootDir;
     }
 
-    public String getRootDir() {
+    public Path getRootDir() {
         return rootDir;
     }
 
