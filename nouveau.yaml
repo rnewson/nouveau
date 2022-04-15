@@ -1,0 +1,9 @@
+maxIndexesOpen: 100
+commitIntervalSeconds: 30
+idleSeconds: 60
+
+server:
+  gzip:
+    includedMethods:
+      - GET
+      - POST
