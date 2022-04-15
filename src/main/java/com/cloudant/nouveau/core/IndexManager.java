@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -31,6 +30,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response.Status;
 
 import com.cloudant.nouveau.api.IndexDefinition;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -237,7 +238,7 @@ public class IndexManager implements Managed {
     private int idleSeconds;
 
     @NotEmpty
-    private String rootDir;
+    private Path rootDir;
 
     @NotNull
     private AnalyzerFactory analyzerFactory;
@@ -315,11 +316,11 @@ public class IndexManager implements Managed {
     }
 
     @JsonProperty
-    public String getRootDir() {
+    public Path getRootDir() {
         return rootDir;
     }
 
-    public void setRootDir(String rootDir) {
+    public void setRootDir(Path rootDir) {
         this.rootDir = rootDir;
     }
 
@@ -429,7 +430,12 @@ public class IndexManager implements Managed {
     }
 
     private Path indexRootPath(final String name) {
-        return Paths.get(rootDir, name);
+        final Path result = rootDir.resolve(name).normalize();
+        if (result.startsWith(rootDir)) {
+            return result;
+        }
+        throw new WebApplicationException(name + " attempts to escape from index root directory",
+                Status.BAD_REQUEST);
     }
 
     private Directory directory(final Path path) throws IOException {
