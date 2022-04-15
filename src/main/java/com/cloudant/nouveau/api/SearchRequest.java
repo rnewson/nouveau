@@ -14,6 +14,8 @@
 
 package com.cloudant.nouveau.api;
 
+import java.util.List;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -32,6 +34,8 @@ public class SearchRequest {
     @Max(200)
     private int limit = 25;
 
+    private List<String> sort;
+
     @SuppressWarnings("unused")
     public SearchRequest() {
         // Jackson deserialization
@@ -47,9 +51,18 @@ public class SearchRequest {
         return limit;
     }
 
+    public boolean hasSort() {
+        return sort != null;
+    }
+
+    @JsonProperty
+    public List<String> getSort() {
+        return sort;
+    }
+
     @Override
     public String toString() {
-        return "SearchRequest [limit=" + limit + ", query=" + query + "]";
+        return "SearchRequest [limit=" + limit + ", query=" + query + ", sort=" + sort + "]";
     }
 
 }

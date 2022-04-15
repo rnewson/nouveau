@@ -78,6 +78,7 @@ public class DocumentFactory {
     public void addTo(final Document doc, final TextField field) {
         doc.add(new org.apache.lucene.document.TextField(field.getName(), field.getValue(),
                                                          field.isStored() ? Store.YES : Store.NO));
+        doc.add(new org.apache.lucene.document.SortedDocValuesField(field.getName(), new BytesRef(field.getValue())));
     }
 
 }

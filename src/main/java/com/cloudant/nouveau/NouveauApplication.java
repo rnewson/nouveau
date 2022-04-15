@@ -15,6 +15,7 @@
 package com.cloudant.nouveau;
 
 import com.cloudant.nouveau.core.AnalyzerFactory;
+import com.cloudant.nouveau.core.BytesRefSerializer;
 import com.cloudant.nouveau.core.DocumentFactory;
 import com.cloudant.nouveau.core.FileAlreadyExistsExceptionMapper;
 import com.cloudant.nouveau.core.FileNotFoundExceptionMapper;
@@ -25,6 +26,10 @@ import com.cloudant.nouveau.health.IndexManagerHealthCheck;
 import com.cloudant.nouveau.resources.AnalyzeResource;
 import com.cloudant.nouveau.resources.IndexResource;
 import com.cloudant.nouveau.resources.SearchResource;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import org.apache.lucene.util.BytesRef;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -45,13 +50,18 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         final DocumentFactory documentFactory = new DocumentFactory();
         final AnalyzerFactory analyzerFactory = new AnalyzerFactory();
 
+        final ObjectMapper objectMapper = environment.getObjectMapper();
+        final SimpleModule module = new SimpleModule();
+        module.addSerializer(BytesRef.class, new BytesRefSerializer());
+        objectMapper.registerModule(module);
+
         final IndexManager indexManager = new IndexManager();
         indexManager.setRootDir(configuration.getRootDir());
         indexManager.setMaxIndexesOpen(configuration.getMaxIndexesOpen());
         indexManager.setCommitIntervalSeconds(configuration.getCommitIntervalSeconds());
         indexManager.setIdleSeconds(configuration.getIdleSeconds());
         indexManager.setAnalyzerFactory(analyzerFactory);
-        indexManager.setObjectMapper(environment.getObjectMapper());
+        indexManager.setObjectMapper(objectMapper);
         environment.lifecycle().manage(indexManager);
 
         environment.jersey().register(new FileNotFoundExceptionMapper());

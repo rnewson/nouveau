@@ -46,6 +46,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherManager;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +75,13 @@ public class SearchResource {
             searcherManager.maybeRefreshBlocking();
             final IndexSearcher searcher = searcherManager.acquire();
             try {
-                final TopDocs topDocs = searcher.search(query, searchRequest.getLimit());
+                final TopDocs topDocs;
+                if (searchRequest.hasSort()) {
+                    final Sort sort = convertSort(searchRequest.getSort());
+                    topDocs = searcher.search(query, searchRequest.getLimit(), sort);
+                } else {
+                    topDocs = searcher.search(query, searchRequest.getLimit());
+                }
                 return toSearchResults(searcher, topDocs);
             } finally {
                 searcherManager.release(searcher);
@@ -112,6 +120,14 @@ public class SearchResource {
             return new DoubleField(field.name(), (double) field.numericValue(), false, false);
         }
         return new StringField(field.name(), field.stringValue(), false, false);
+    }
+
+    private Sort convertSort(final List<String> sort) {
+        final SortField[] fields = new SortField[sort.size()];
+        for (int i = 0; i < sort.size(); i++) {
+            fields[0] = new SortField(sort.get(i), SortField.Type.STRING);
+        }
+        return new Sort(fields);
     }
 
 }
