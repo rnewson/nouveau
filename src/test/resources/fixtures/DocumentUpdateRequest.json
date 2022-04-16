@@ -1,0 +1,25 @@
+{
+  "seq": 12,
+  "fields": [
+    {
+      "@type": "string",
+      "name": "stringfoo",
+      "value": "bar",
+      "stored": true,
+      "facet": true
+    },
+    {
+      "@type": "text",
+      "name": "textfoo",
+      "value": "hello there",
+      "stored": true
+    },
+    {
+      "@type": "double",
+      "name": "doublefoo",
+      "value": 12,
+      "stored": true,
+      "facet": true
+    }
+  ]
+}

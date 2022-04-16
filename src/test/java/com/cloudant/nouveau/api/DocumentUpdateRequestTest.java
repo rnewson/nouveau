@@ -14,31 +14,34 @@
 
 package com.cloudant.nouveau.api;
 
-import static org.junit.Assert.*;
+import static io.dropwizard.jackson.Jackson.newObjectMapper;
+import static io.dropwizard.testing.FixtureHelpers.fixture;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.junit.Test;
-
-import java.util.List;
-import java.util.ArrayList;
+import org.junit.jupiter.api.Test;
 
 public class DocumentUpdateRequestTest {
 
+    private static final ObjectMapper MAPPER = newObjectMapper();
+
     @Test
     public void testSerialisation() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(asString(), mapper.writeValueAsString(asObject()));
+        DocumentUpdateRequest request = asObject();
+        final String expected = MAPPER.writeValueAsString(
+            MAPPER.readValue(fixture("fixtures/DocumentUpdateRequest.json"), DocumentUpdateRequest.class));
+        assertThat(MAPPER.writeValueAsString(request)).isEqualTo(expected);
     }
 
     @Test
     public void testDeserialisation() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(asObject(), mapper.readValue(asString(), DocumentUpdateRequest.class));
-    }
-
-    private String asString() {
-        return "{\"seq\":12,\"fields\":[{\"@type\":\"string\",\"name\":\"stringfoo\",\"value\":\"bar\",\"stored\":true,\"facet\":true},{\"@type\":\"text\",\"name\":\"textfoo\",\"value\":\"hello there\",\"stored\":true},{\"@type\":\"double\",\"name\":\"doublefoo\",\"value\":12.0,\"stored\":true,\"facet\":true}]}";
+        DocumentUpdateRequest request = asObject();
+        assertThat(MAPPER.readValue(fixture("fixtures/DocumentUpdateRequest.json"), DocumentUpdateRequest.class))
+                .isEqualTo(request);
     }
 
     private DocumentUpdateRequest asObject() {
