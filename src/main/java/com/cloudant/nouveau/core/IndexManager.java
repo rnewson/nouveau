@@ -167,7 +167,7 @@ public class IndexManager implements Managed {
                     } finally {
                         writer = null;
                     }
-                    IOUtils.rm(indexPath(name));
+                    IOUtils.rm(indexRootPath(name));
                 } else {
                     try {
                         writer.setLiveCommitData(generateCommitData().entrySet());
