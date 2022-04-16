@@ -14,15 +14,22 @@
 
 package com.cloudant.nouveau.api;
 
-import static io.dropwizard.jackson.Jackson.newObjectMapper;
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.cloudant.nouveau.core.IndexableFieldDeserializer;
+import com.cloudant.nouveau.core.IndexableFieldSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.IndexableField;
 import org.junit.jupiter.api.Test;
 
 public class DocumentUpdateRequestTest {
@@ -45,11 +52,20 @@ public class DocumentUpdateRequestTest {
     }
 
     private DocumentUpdateRequest asObject() {
-        final List<Field> fields = new ArrayList<Field>();
-        fields.add(new StringField("stringfoo", "bar", true, true));
-        fields.add(new TextField("textfoo", "hello there", true));
-        fields.add(new DoubleField("doublefoo", 12, true, true));
+        final List<IndexableField> fields = new ArrayList<IndexableField>();
+        fields.add(new StringField("stringfoo", "bar", Store.YES));
+        fields.add(new TextField("textfoo", "hello there", Store.YES));
+        fields.add(new DoublePoint("doublefoo", 12));
         return new DocumentUpdateRequest(12, fields);
+    }
+
+    private static ObjectMapper newObjectMapper() {
+        final ObjectMapper result = new ObjectMapper();
+        final SimpleModule module = new SimpleModule();
+        module.addSerializer(IndexableField.class, new IndexableFieldSerializer());
+        module.addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
+        result.registerModule(module);
+        return result;
     }
 
 }

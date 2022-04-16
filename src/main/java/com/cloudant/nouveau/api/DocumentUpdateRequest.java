@@ -21,6 +21,8 @@ import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.lucene.index.IndexableField;
+
 import io.dropwizard.jackson.JsonSnakeCase;
 
 @JsonSnakeCase
@@ -30,14 +32,14 @@ public class DocumentUpdateRequest {
     private long seq;
 
     @NotEmpty
-    private List<Field> fields;
+    private List<IndexableField> fields;
 
     @SuppressWarnings("unused")
     public DocumentUpdateRequest() {
         // Jackson deserialization
     }
 
-    public DocumentUpdateRequest(long seq, List<Field> fields) {
+    public DocumentUpdateRequest(long seq, List<IndexableField> fields) {
         this.seq = seq;
         this.fields = fields;
     }
@@ -48,7 +50,7 @@ public class DocumentUpdateRequest {
     }
 
     @JsonProperty
-    public List<Field> getFields() {
+    public List<IndexableField> getFields() {
         return fields;
     }
 

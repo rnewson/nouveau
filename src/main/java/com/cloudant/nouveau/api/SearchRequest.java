@@ -22,6 +22,8 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.lucene.search.Sort;
+
 import io.dropwizard.jackson.JsonSnakeCase;
 
 @JsonSnakeCase
@@ -34,7 +36,7 @@ public class SearchRequest {
     @Max(200)
     private int limit = 25;
 
-    private List<String> sort;
+    private Sort sort;
 
     @SuppressWarnings("unused")
     public SearchRequest() {
@@ -56,7 +58,7 @@ public class SearchRequest {
     }
 
     @JsonProperty
-    public List<String> getSort() {
+    public Sort getSort() {
         return sort;
     }
 

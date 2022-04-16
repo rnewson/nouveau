@@ -28,26 +28,21 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.cloudant.nouveau.api.DoubleField;
-import com.cloudant.nouveau.api.Field;
 import com.cloudant.nouveau.api.SearchHit;
 import com.cloudant.nouveau.api.SearchRequest;
 import com.cloudant.nouveau.api.SearchResults;
-import com.cloudant.nouveau.api.StringField;
 import com.cloudant.nouveau.core.IndexManager;
 import com.cloudant.nouveau.core.IndexManager.Index;
 import com.cloudant.nouveau.core.QueryParserException;
 import com.codahale.metrics.annotation.Timed;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +72,7 @@ public class SearchResource {
             try {
                 final TopDocs topDocs;
                 if (searchRequest.hasSort()) {
-                    final Sort sort = convertSort(searchRequest.getSort());
-                    topDocs = searcher.search(query, searchRequest.getLimit(), sort);
+                    topDocs = searcher.search(query, searchRequest.getLimit(), searchRequest.getSort());
                 } else {
                     topDocs = searcher.search(query, searchRequest.getLimit());
                 }
@@ -106,28 +100,9 @@ public class SearchResource {
                 order = Arrays.asList(scoreDoc.score, doc.get("_id"));
             }
 
-            final List<Field> fields = new ArrayList<Field>(doc.getFields().size());
-            for (IndexableField field : doc.getFields()) {
-                fields.add(convertField(field));
-            }
-            hits.add(new SearchHit(doc.get("_id"), order, fields));
+            hits.add(new SearchHit(doc.get("_id"), order, doc.getFields()));
         }
         return new SearchResults(topDocs.totalHits.value, hits);
-    }
-
-    private Field convertField(final IndexableField field) {
-        if (field.numericValue() != null) {
-            return new DoubleField(field.name(), (double) field.numericValue(), false, false);
-        }
-        return new StringField(field.name(), field.stringValue(), false, false);
-    }
-
-    private Sort convertSort(final List<String> sort) {
-        final SortField[] fields = new SortField[sort.size()];
-        for (int i = 0; i < sort.size(); i++) {
-            fields[0] = new SortField(sort.get(i), SortField.Type.STRING);
-        }
-        return new Sort(fields);
     }
 
 }

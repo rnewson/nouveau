@@ -2,24 +2,21 @@
   "seq": 12,
   "fields": [
     {
-      "@type": "string",
+      "type": "string",
       "name": "stringfoo",
       "value": "bar",
-      "stored": true,
-      "facet": true
+      "stored": true
     },
     {
-      "@type": "text",
+      "type": "text",
       "name": "textfoo",
       "value": "hello there",
       "stored": true
     },
     {
-      "@type": "double",
+      "type": "double",
       "name": "doublefoo",
-      "value": 12,
-      "stored": true,
-      "facet": true
+      "value": 12
     }
   ]
 }

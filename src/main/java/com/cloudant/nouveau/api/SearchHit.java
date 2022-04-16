@@ -19,6 +19,8 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import org.apache.lucene.index.IndexableField;
+
 import io.dropwizard.jackson.JsonSnakeCase;
 
 @JsonSnakeCase
@@ -31,12 +33,12 @@ public class SearchHit {
     private List<Object> order;
 
     @NotNull
-    private List<Field> fields;
+    private List<IndexableField> fields;
 
     public SearchHit() {
     }
 
-    public SearchHit(final String id, final List<Object> order, final List<Field> fields) {
+    public SearchHit(final String id, final List<Object> order, final List<IndexableField> fields) {
         this.id = id;
         this.order = order;
         this.fields = fields;
@@ -50,7 +52,7 @@ public class SearchHit {
         return order;
     }
 
-    public List<Field> getFields() {
+    public List<IndexableField> getFields() {
         return fields;
     }
 
