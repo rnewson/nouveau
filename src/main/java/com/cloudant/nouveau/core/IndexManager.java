@@ -52,6 +52,7 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.util.IOUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -166,10 +167,7 @@ public class IndexManager implements Managed {
                     } finally {
                         writer = null;
                     }
-
-                    for (String name : dir.listAll()) {
-                        dir.deleteFile(name);
-                    }
+                    IOUtils.rm(indexPath(name));
                 } else {
                     try {
                         writer.setLiveCommitData(generateCommitData().entrySet());
