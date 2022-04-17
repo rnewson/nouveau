@@ -88,8 +88,8 @@ public class IndexableFieldTypeSerializer extends StdSerializer<IndexableFieldTy
             gen.writeBooleanField("store_term_vectors", true);
         }
 
-        if (fieldType.tokenized()) {
-            gen.writeBooleanField("tokenized", true);
+        if (!fieldType.tokenized()) {
+            gen.writeBooleanField("tokenized", false);
         }
 
         if (fieldType.vectorDimension() > 0) {

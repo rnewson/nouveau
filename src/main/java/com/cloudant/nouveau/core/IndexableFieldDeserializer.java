@@ -51,7 +51,6 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
         }
 
         if (node.has("string_value")) {
-            System.err.println("OOH " + type);
             return new Field(name, node.get("string_value").asText(), type);
         }
 

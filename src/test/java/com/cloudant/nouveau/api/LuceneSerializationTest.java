@@ -37,25 +37,63 @@ import org.junit.jupiter.api.Test;
 public class LuceneSerializationTest {
 
     @Test
-    public void testSerialization() throws Exception {
-        final ObjectMapper om = objectMapper();
-        final Document doc = new Document();
-        doc.add(new StringField("stringfoo", "bar", Store.YES));
-        doc.add(new TextField("textfoo", "hello there", Store.YES));
-        doc.add(new DoublePoint("doublefoo", 12));
-
-        final String expected = fixture("fixtures/LuceneFields.json");
-        final String actual = om.writeValueAsString(doc);
-        assertThat(expected).isEqualToIgnoringWhitespace(actual);
+    public void testSerializationStringField() throws Exception {
+        final String str = """
+            {
+                "name": "stringfoo",
+                "type": {
+                    "index_options": "DOCS",
+                    "omit_norms": true,
+                    "stored": true,
+                    "tokenized": false
+                },
+                "string_value": "bar"
+            }
+        """;
+        roundtripTest(str, new StringField("stringfoo", "bar", Store.YES));
     }
 
     @Test
-    public void testDeserialization() throws Exception {
-        final ObjectMapper om = objectMapper();
+    public void testSerializationTextField() throws Exception {
+        final String str = """
+            {
+                "name": "textfoo",
+                "type": {
+                    "index_options": "DOCS_AND_FREQS_AND_POSITIONS",
+                    "stored": true
+                },
+                "string_value": "hello there"
+            }
+        """;
+        roundtripTest(str, new TextField("textfoo", "hello there", Store.YES));
+    }
 
-        final String serialized = fixture("fixtures/LuceneFields.json");
-        final Document actual = om.readValue(serialized, Document.class);
-        System.err.println(actual);
+    @Test
+    public void testSerializationDoublePoint() throws Exception {
+        final String str = """
+            {
+                "name": "doublefoo",
+                "type": {
+                    "point_dimension_count": 1,
+                    "point_index_dimension_count": 1,
+                    "point_num_bytes": 8
+                },
+                "binary_value": "wCgAAAAAAAA="
+            }
+        """;
+        roundtripTest(str, new DoublePoint("doublefoo", 12));
+    }
+
+    private void roundtripTest(final String stringForm, final IndexableField objectForm) throws Exception {
+        final ObjectMapper mapper = objectMapper();
+
+        // serialization.
+        final String newStringForm = mapper.writeValueAsString(objectForm);
+        assertThat(stringForm).isEqualToIgnoringWhitespace(newStringForm);
+
+        // deserialization.
+        final Object newObjectForm = mapper.readValue(newStringForm, IndexableField.class);
+        assertThat(objectForm.toString()).isEqualToIgnoringWhitespace(newObjectForm.toString());
     }
 
     private ObjectMapper objectMapper() {
