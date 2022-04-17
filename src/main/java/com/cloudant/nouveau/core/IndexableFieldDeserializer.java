@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.IndexableFieldType;
 
 public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
 
@@ -43,7 +43,23 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
 
         final String name = node.get("name").asText();
 
-        return new Field(name, new byte[0], StoredField.TYPE);
+        final IndexableFieldType type = node.get("type").traverse(
+            parser.getCodec()).readValueAs(IndexableFieldType.class);
+
+        if (node.has("string_value")) {
+            node.get("string_value").asText();
+        }
+
+        if (node.has("string_value")) {
+            System.err.println("OOH " + type);
+            return new Field(name, node.get("string_value").asText(), type);
+        }
+
+        if (node.has("binary_value")) {
+            return new Field(name, node.get("binary_value").binaryValue(), type);
+        }
+
+        return null;
     }
 
 }
