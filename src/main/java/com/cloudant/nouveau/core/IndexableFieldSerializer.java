@@ -53,26 +53,6 @@ public class IndexableFieldSerializer extends StdSerializer<IndexableField> {
             gen.writeBinary(bytesRef.bytes, bytesRef.offset, bytesRef.length);
         }
 
-        if (field.numericValue() instanceof Double) {
-            gen.writeNumberField("numeric_value", (Double) field.numericValue());
-        }
-
-        if (field.numericValue() instanceof Float) {
-            gen.writeNumberField("numeric_value", (Float) field.numericValue());
-        }
-
-        if (field.numericValue() instanceof Long) {
-            gen.writeNumberField("numeric_value", (Long) field.numericValue());
-        }
-
-        if (field.numericValue() instanceof Integer) {
-            gen.writeNumberField("numeric_value", (Integer) field.numericValue());
-        }
-
-        if (field.numericValue() instanceof Short) {
-            gen.writeNumberField("numeric_value", (Short) field.numericValue());
-        }
-
         gen.writeEndObject();
     }
 

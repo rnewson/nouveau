@@ -22,12 +22,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
-import org.apache.lucene.document.DoublePoint;
-import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.IndexableField;
 
 public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
@@ -47,27 +43,7 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
 
         final String name = node.get("name").asText();
 
-        final JsonNode typeNode = node.get("type");
-        final FieldType fieldType = new FieldType();
-        if (typeNode.has("doc_values_type")) {
-            fieldType.setDocValuesType(DocValuesType.valueOf(typeNode.get("doc_values_type").asText()));
-        }
-
-        boolean stored = false;
-        if (node.has("stored")) {
-            stored = node.get("stored").asBoolean();
-        }
-        switch (node.get("type").asText()) {
-        case "string":
-            return new StringField(name, node.get("string_value").asText(), stored ? Store.YES : Store.NO);
-        case "text":
-            return new TextField(name, node.get("string_value").asText(), stored ? Store.YES : Store.NO);
-        case "double":
-            return new DoublePoint(name, node.get("numeric_value").asDouble());
-        default:
-            return null;
-        }
+        return new Field(name, new byte[0], StoredField.TYPE);
     }
-
 
 }
