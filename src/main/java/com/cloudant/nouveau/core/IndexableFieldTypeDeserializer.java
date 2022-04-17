@@ -92,6 +92,7 @@ public class IndexableFieldTypeDeserializer extends StdDeserializer<IndexableFie
             result.setVectorDimensionsAndSimilarityFunction(node.get("vector_dimensions").asInt(), vsf);
         }
 
+        result.freeze();
         return result;
     }
 
