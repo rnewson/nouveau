@@ -1,3 +1,17 @@
+// Copyright 2022 Robert Newson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.cloudant.nouveau.core;
 
 import java.io.IOException;
@@ -9,9 +23,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexableField;
 
 public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
@@ -28,19 +44,26 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
     public IndexableField deserialize(final JsonParser parser, final DeserializationContext context)
             throws IOException, JsonProcessingException {
         JsonNode node = parser.getCodec().readTree(parser);
+
         final String name = node.get("name").asText();
-        final String type = node.get("type").asText();
+
+        final JsonNode typeNode = node.get("type");
+        final FieldType fieldType = new FieldType();
+        if (typeNode.has("doc_values_type")) {
+            fieldType.setDocValuesType(DocValuesType.valueOf(typeNode.get("doc_values_type").asText()));
+        }
+
         boolean stored = false;
         if (node.has("stored")) {
             stored = node.get("stored").asBoolean();
         }
-        switch (type) {
+        switch (node.get("type").asText()) {
         case "string":
-            return new StringField(name, node.get("value").asText(), stored ? Store.YES : Store.NO);
+            return new StringField(name, node.get("string_value").asText(), stored ? Store.YES : Store.NO);
         case "text":
-            return new TextField(name, node.get("value").asText(), stored ? Store.YES : Store.NO);
+            return new TextField(name, node.get("string_value").asText(), stored ? Store.YES : Store.NO);
         case "double":
-            return new DoublePoint(name, node.get("value").asDouble());
+            return new DoublePoint(name, node.get("numeric_value").asDouble());
         default:
             return null;
         }
