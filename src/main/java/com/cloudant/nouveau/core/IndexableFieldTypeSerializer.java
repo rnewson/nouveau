@@ -40,66 +40,21 @@ public class IndexableFieldTypeSerializer extends StdSerializer<IndexableFieldTy
     public void serialize(final IndexableFieldType fieldType, final JsonGenerator gen, final SerializerProvider provider)
         throws IOException, JsonProcessingException {
         gen.writeStartObject();
-        if (fieldType.docValuesType() != DocValuesType.NONE) {
-            gen.writeStringField("doc_values_type", fieldType.docValuesType().name());
-        }
-
-        if (fieldType.getAttributes() != null) {
-            gen.writeObjectField("attributes", fieldType.getAttributes());
-        }
-
-        if (fieldType.indexOptions() != IndexOptions.NONE) {
-            gen.writeStringField("index_options", fieldType.indexOptions().name());
-        }
-
-        if (fieldType.omitNorms()) {
-            gen.writeBooleanField("omit_norms", true);
-        }
-
-        if (fieldType.pointDimensionCount() > 0) {
-            gen.writeNumberField("point_dimension_count", fieldType.pointDimensionCount());
-        }
-
-        if (fieldType.pointIndexDimensionCount() > 0) {
-            gen.writeNumberField("point_index_dimension_count", fieldType.pointIndexDimensionCount());
-        }
-
-        if (fieldType.pointNumBytes() > 0) {
-            gen.writeNumberField("point_num_bytes", fieldType.pointNumBytes());
-        }
-
-        if (fieldType.stored()) {
-            gen.writeBooleanField("stored", true);
-        }
-
-        if (fieldType.storeTermVectorOffsets()) {
-            gen.writeBooleanField("store_term_vector_offsets", true);
-        }
-
-        if (fieldType.storeTermVectorPayloads()) {
-            gen.writeBooleanField("store_term_vector_payloads", true);
-        }
-
-        if (fieldType.storeTermVectorPositions()) {
-            gen.writeBooleanField("store_term_vector_positions", true);
-        }
-
-        if (fieldType.storeTermVectors()) {
-            gen.writeBooleanField("store_term_vectors", true);
-        }
-
-        if (!fieldType.tokenized()) {
-            gen.writeBooleanField("tokenized", false);
-        }
-
-        if (fieldType.vectorDimension() > 0) {
-            gen.writeNumberField("vector_dimension", fieldType.vectorDimension());
-        }
-
-        if (fieldType.vectorSimilarityFunction() != VectorSimilarityFunction.EUCLIDEAN) {
-            gen.writeStringField("vector_similarity_function", fieldType.vectorSimilarityFunction().name());
-        }
-
+        gen.writeStringField("doc_values_type", fieldType.docValuesType().name());
+        gen.writeObjectField("attributes", fieldType.getAttributes());
+        gen.writeStringField("index_options", fieldType.indexOptions().name());
+        gen.writeBooleanField("omit_norms", fieldType.omitNorms());
+        gen.writeNumberField("point_dimension_count", fieldType.pointDimensionCount());
+        gen.writeNumberField("point_index_dimension_count", fieldType.pointIndexDimensionCount());
+        gen.writeNumberField("point_num_bytes", fieldType.pointNumBytes());
+        gen.writeBooleanField("stored", fieldType.stored());
+        gen.writeBooleanField("store_term_vector_offsets", fieldType.storeTermVectorOffsets());
+        gen.writeBooleanField("store_term_vector_payloads", fieldType.storeTermVectorPayloads());
+        gen.writeBooleanField("store_term_vector_positions", fieldType.storeTermVectorPositions());
+        gen.writeBooleanField("store_term_vectors", fieldType.storeTermVectors());
+        gen.writeBooleanField("tokenized", fieldType.tokenized());
+        gen.writeNumberField("vector_dimension", fieldType.vectorDimension());
+        gen.writeStringField("vector_similarity_function", fieldType.vectorSimilarityFunction().name());
         gen.writeEndObject();
     }
 
