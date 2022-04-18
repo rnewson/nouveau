@@ -48,7 +48,7 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         final AnalyzerFactory analyzerFactory = new AnalyzerFactory();
 
         final ObjectMapper objectMapper = environment.getObjectMapper();
-        objectMapper.registerModule(LuceneModule.instance());
+        objectMapper.registerModule(new LuceneModule());
 
         final IndexManager indexManager = new IndexManager();
         indexManager.setRootDir(configuration.getRootDir());

@@ -14,24 +14,16 @@
 
 package com.cloudant.nouveau.api;
 
-import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cloudant.nouveau.core.IndexableFieldDeserializer;
-import com.cloudant.nouveau.core.IndexableFieldSerializer;
-import com.cloudant.nouveau.core.IndexableFieldTypeDeserializer;
-import com.cloudant.nouveau.core.IndexableFieldTypeSerializer;
+import com.cloudant.nouveau.core.LuceneModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DoublePoint;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.IndexableFieldType;
 import org.junit.jupiter.api.Test;
 
 public class LuceneSerializationTest {
@@ -98,12 +90,7 @@ public class LuceneSerializationTest {
 
     private ObjectMapper objectMapper() {
         final ObjectMapper om = new ObjectMapper();
-        final SimpleModule module = new SimpleModule();
-        module.addSerializer(IndexableField.class, new IndexableFieldSerializer());
-        module.addSerializer(IndexableFieldType.class, new IndexableFieldTypeSerializer());
-        module.addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
-        module.addDeserializer(IndexableFieldType.class, new IndexableFieldTypeDeserializer());
-        om.registerModule(module);
+        om.registerModule(new LuceneModule());
         return om;
     }
 

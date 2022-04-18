@@ -14,17 +14,39 @@
 
 package com.cloudant.nouveau.core;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.IndexableFieldType;
+import org.apache.lucene.util.BytesRef;
 
-public class LuceneModule {
+public class LuceneModule extends SimpleModule {
 
-    public static SimpleModule instance() {
-        final SimpleModule result = new SimpleModule();
-        result.addSerializer(IndexableField.class, new IndexableFieldSerializer());
-        result.addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
-        return result;
+    public LuceneModule() {
+        super("lucene", new Version(0, 0, 1, null));
+        addSerializer(BytesRef.class, new BytesRefSerializer());
+        setMixInAnnotation(FieldType.class, FieldTypeMixin.class);
+        setMixInAnnotation(IndexableFieldType.class, FieldTypeMixin.class);
+        setMixInAnnotation(Field.class, FieldMixin.class);
+        setMixInAnnotation(IndexableField.class, FieldMixin.class);
+
+        // Serializers
+
+        // Sugar first
+        // result.addSerializer(DoublePoint.class, new DoublePointSerializer());
+        // result.addSerializer(IntPoint.class, new IntPointSerializer());
+        // result.addSerializer(StringField.class, new StringFieldSerializer());
+        // result.addSerializer(TextField.class, new TextFieldSerializer());
+        // result.addSerializer(StoredField.class, new StoredFieldSerializer());
+
+        // // Generic
+        // result.addSerializer(IndexableField.class, new IndexableFieldSerializer());
+        // result.addSerializer(IndexableFieldType.class, new IndexableFieldTypeSerializer());
+
+        // //result.addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
     }
 
 }
