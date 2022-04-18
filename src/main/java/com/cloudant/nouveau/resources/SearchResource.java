@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -26,7 +28,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
 import com.cloudant.nouveau.api.DoubleField;
 import com.cloudant.nouveau.api.Field;
@@ -58,6 +62,7 @@ import org.slf4j.LoggerFactory;
 public class SearchResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
+    private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
     private final IndexManager indexManager;
 
     public SearchResource(final IndexManager indexManager) {
@@ -125,9 +130,29 @@ public class SearchResource {
     private Sort convertSort(final List<String> sort) {
         final SortField[] fields = new SortField[sort.size()];
         for (int i = 0; i < sort.size(); i++) {
-            fields[0] = new SortField(sort.get(i), SortField.Type.STRING);
+            fields[0] = convertSortField(sort.get(i));
         }
         return new Sort(fields);
+    }
+
+    private SortField convertSortField(final String sortString) {
+        final Matcher m = SORT_FIELD_RE.matcher(sortString);
+        if (!m.matches()) {
+            throw new WebApplicationException(
+                sortString + " is not a valid sort parameter", Status.BAD_REQUEST);
+        }
+        final boolean reverse = "-".equals(m.group(1));
+        final SortField.Type type;
+        switch (m.group(3)) {
+        case "string":
+            type = SortField.Type.STRING;
+            break;
+        case "number":
+        default:
+            type = SortField.Type.DOUBLE;
+            break;
+        }
+        return new SortField(m.group(2), type, reverse);
     }
 
 }
