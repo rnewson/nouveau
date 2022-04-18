@@ -52,7 +52,8 @@ In order not to collide with `dreyfus` I've hooked Nouveau in with some uglier p
 
 This will cause Nouveau to build indexes for each copy (N) and each
 shard range (Q) and then perform a search and return the results. Lots
-of query syntax is working and you can use `sort=["fieldnamehere"]`
-but only for strings at the moment while I figure out how best to
-express field types.
+of query syntax is working as is sorting on strings and numbers
+(`sort=["fieldnamehere<string>"] or sort=["fieldnamehere<number>"],
+defaulting to number).
+
 
