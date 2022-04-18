@@ -26,13 +26,11 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.util.BytesRef;
 
 public class LuceneModule extends SimpleModule {
 
     public LuceneModule() {
-        super("lucene", new Version(0, 0, 1, null));
-        addSerializer(BytesRef.class, new BytesRefSerializer());
+        super("lucene", Version.unknownVersion());
 
         // Serializers
         addSerializer(DoublePoint.class, new DoublePointSerializer());
@@ -46,12 +44,6 @@ public class LuceneModule extends SimpleModule {
 
         // Deserializer
         addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
-
-        // // Generic
-        // result.addSerializer(IndexableField.class, new IndexableFieldSerializer());
-        // result.addSerializer(IndexableFieldType.class, new IndexableFieldTypeSerializer());
-
-        // //result.addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
     }
 
 }
