@@ -17,10 +17,15 @@ package com.cloudant.nouveau.core;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.IndexableFieldType;
 import org.apache.lucene.util.BytesRef;
 
 public class LuceneModule extends SimpleModule {
@@ -28,19 +33,19 @@ public class LuceneModule extends SimpleModule {
     public LuceneModule() {
         super("lucene", new Version(0, 0, 1, null));
         addSerializer(BytesRef.class, new BytesRefSerializer());
-        setMixInAnnotation(FieldType.class, FieldTypeMixin.class);
-        setMixInAnnotation(IndexableFieldType.class, FieldTypeMixin.class);
-        setMixInAnnotation(Field.class, FieldMixin.class);
-        setMixInAnnotation(IndexableField.class, FieldMixin.class);
 
         // Serializers
+        addSerializer(DoublePoint.class, new DoublePointSerializer());
+        addSerializer(IntPoint.class, new IntPointSerializer());
+        addSerializer(FloatPoint.class, new FloatPointSerializer());
+        addSerializer(LongPoint.class, new LongPointSerializer());
+        addSerializer(StringField.class, new StringFieldSerializer());
+        addSerializer(TextField.class, new TextFieldSerializer());
+        addSerializer(StoredField.class, new StoredFieldSerializer());
+        addSerializer(XYPointField.class, new XYPointFieldSerializer());
 
-        // Sugar first
-        // result.addSerializer(DoublePoint.class, new DoublePointSerializer());
-        // result.addSerializer(IntPoint.class, new IntPointSerializer());
-        // result.addSerializer(StringField.class, new StringFieldSerializer());
-        // result.addSerializer(TextField.class, new TextFieldSerializer());
-        // result.addSerializer(StoredField.class, new StoredFieldSerializer());
+        // Deserializer
+        addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
 
         // // Generic
         // result.addSerializer(IndexableField.class, new IndexableFieldSerializer());

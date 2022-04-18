@@ -21,8 +21,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.lucene.document.DoublePoint;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
 import org.junit.jupiter.api.Test;
 
@@ -32,14 +36,10 @@ public class LuceneSerializationTest {
     public void testSerializationStringField() throws Exception {
         final String str = """
             {
+                "type": "string",
                 "name": "stringfoo",
-                "type": {
-                    "index_options": "DOCS",
-                    "omit_norms": true,
-                    "stored": true,
-                    "tokenized": false
-                },
-                "string_value": "bar"
+                "value": "bar",
+                "stored": true
             }
         """;
         roundtripTest(str, new StringField("stringfoo", "bar", Store.YES));
@@ -49,12 +49,10 @@ public class LuceneSerializationTest {
     public void testSerializationTextField() throws Exception {
         final String str = """
             {
+                "type": "text",
                 "name": "textfoo",
-                "type": {
-                    "index_options": "DOCS_AND_FREQS_AND_POSITIONS",
-                    "stored": true
-                },
-                "string_value": "hello there"
+                "value": "hello there",
+                "stored": true
             }
         """;
         roundtripTest(str, new TextField("textfoo", "hello there", Store.YES));
@@ -63,17 +61,62 @@ public class LuceneSerializationTest {
     @Test
     public void testSerializationDoublePoint() throws Exception {
         final String str = """
+                    {
+                        "type": "double",
+                        "name": "doublefoo",
+                        "value": 12.0
+                    }
+                """;
+        roundtripTest(str, new DoublePoint("doublefoo", 12));
+    }
+
+    @Test
+    public void testSerializationIntPoint() throws Exception {
+        final String str = """
+                    {
+                        "type": "int",
+                        "name": "intfoo",
+                        "value": 13
+                    }
+                """;
+        roundtripTest(str, new IntPoint("intfoo", 13));
+    }
+
+    @Test
+    public void testSerializationFloatPoint() throws Exception {
+        final String str = """
+                    {
+                        "type": "float",
+                        "name": "floatfoo",
+                        "value": 14.5
+                    }
+                """;
+        roundtripTest(str, new FloatPoint("floatfoo", 14.5f));
+    }
+
+    @Test
+    public void testSerializationLongPoint() throws Exception {
+        final String str = """
+                    {
+                        "type": "long",
+                        "name": "longfoo",
+                        "value": 15
+                    }
+                """;
+        roundtripTest(str, new LongPoint("longfoo", 15));
+    }
+
+    @Test
+    public void testSerializationXYPoint() throws Exception {
+        final String str = """
             {
-                "name": "doublefoo",
-                "type": {
-                    "point_dimension_count": 1,
-                    "point_index_dimension_count": 1,
-                    "point_num_bytes": 8
-                },
-                "binary_value": "wCgAAAAAAAA="
+                "type": "xy",
+                "name": "xyfoo",
+                "x": 2.0,
+                "y": 4.0
             }
         """;
-        roundtripTest(str, new DoublePoint("doublefoo", 12));
+        roundtripTest(str, new XYPointField("xyfoo", 2, 4));
     }
 
     private void roundtripTest(final String stringForm, final IndexableField objectForm) throws Exception {
@@ -81,7 +124,7 @@ public class LuceneSerializationTest {
 
         // serialization.
         final String newStringForm = mapper.writeValueAsString(objectForm);
-        assertThat(stringForm).isEqualToIgnoringWhitespace(newStringForm);
+        assertThat(stringForm.replaceAll("\\s","")).isEqualTo(newStringForm.replaceAll("\\s",""));
 
         // deserialization.
         final Object newObjectForm = mapper.readValue(newStringForm, IndexableField.class);

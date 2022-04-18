@@ -22,9 +22,15 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
-import org.apache.lucene.document.Field;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.IndexableFieldType;
 
 public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
 
@@ -42,20 +48,25 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
         JsonNode node = parser.getCodec().readTree(parser);
 
         final String name = node.get("name").asText();
+        final String type = node.get("type").asText();
 
-        final IndexableFieldType type = node.get("type").traverse(
-            parser.getCodec()).readValueAs(IndexableFieldType.class);
-
-        if (node.has("string_value")) {
-            node.get("string_value").asText();
-        }
-
-        if (node.has("string_value")) {
-            return new Field(name, node.get("string_value").asText(), type);
-        }
-
-        if (node.has("binary_value")) {
-            return new Field(name, node.get("binary_value").binaryValue(), type);
+        switch (type) {
+        case "double":
+            return new DoublePoint(name, node.get("value").doubleValue());
+        case "float":
+            return new FloatPoint(name, node.get("value").floatValue());
+        case "int":
+            return new IntPoint(name, node.get("value").intValue());
+        case "long":
+            return new LongPoint(name, node.get("value").longValue());
+        case "xy":
+            return new XYPointField(name, node.get("x").floatValue(), node.get("y").floatValue());
+        case "string":
+            return new StringField(name, node.get("value").asText(),
+                    node.get("stored").asBoolean() ? Store.YES : Store.NO);
+        case "text":
+            return new TextField(name, node.get("value").asText(),
+                    node.get("stored").asBoolean() ? Store.YES : Store.NO);
         }
 
         return null;
