@@ -88,6 +88,8 @@ public class SearchResource {
                     topDocs = searcher.search(query, searchRequest.getLimit());
                 }
                 return toSearchResults(searcher, topDocs);
+            } catch (IllegalStateException e) {
+                throw new WebApplicationException(e.getMessage(), e, Status.BAD_REQUEST);
             } finally {
                 searcherManager.release(searcher);
             }
