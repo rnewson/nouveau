@@ -24,10 +24,12 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Test;
 
 public class LuceneSerializationTest {
@@ -109,14 +111,50 @@ public class LuceneSerializationTest {
     @Test
     public void testSerializationXYPoint() throws Exception {
         final String str = """
+                    {
+                        "type": "xy",
+                        "name": "xyfoo",
+                        "x": 2.0,
+                        "y": 4.0
+                    }
+                """;
+        roundtripTest(str, new XYPointField("xyfoo", 2, 4));
+    }
+
+    @Test
+    public void testSerializationStoredFieldBytesRef() throws Exception {
+        final String str = """
             {
-                "type": "xy",
-                "name": "xyfoo",
-                "x": 2.0,
-                "y": 4.0
+                "type": "stored",
+                "name": "storedfoo",
+                "binary_value": "aGVsbG8="
             }
         """;
-        roundtripTest(str, new XYPointField("xyfoo", 2, 4));
+        roundtripTest(str, new StoredField("storedfoo", new BytesRef("hello")));
+    }
+
+    @Test
+    public void testSerializationStoredFieldNumber() throws Exception {
+        final String str = """
+            {
+                "type": "stored",
+                "name": "storedfoo",
+                "numeric_value": 123.456
+            }
+        """;
+        roundtripTest(str, new StoredField("storedfoo", 123.456));
+    }
+
+    @Test
+    public void testSerializationStoredString() throws Exception {
+        final String str = """
+            {
+                "type": "stored",
+                "name": "storedfoo",
+                "string_value": "foo"
+            }
+        """;
+        roundtripTest(str, new StoredField("storedfoo", "foo"));
     }
 
     private void roundtripTest(final String stringForm, final IndexableField objectForm) throws Exception {
@@ -124,11 +162,11 @@ public class LuceneSerializationTest {
 
         // serialization.
         final String newStringForm = mapper.writeValueAsString(objectForm);
-        assertThat(stringForm.replaceAll("\\s","")).isEqualTo(newStringForm.replaceAll("\\s",""));
+        assertThat(newStringForm).isEqualToIgnoringWhitespace(stringForm);
 
         // deserialization.
         final Object newObjectForm = mapper.readValue(newStringForm, IndexableField.class);
-        assertThat(objectForm.toString()).isEqualToIgnoringWhitespace(newObjectForm.toString());
+        assertThat(newObjectForm.toString()).isEqualToIgnoringWhitespace(objectForm.toString());
     }
 
     private ObjectMapper objectMapper() {

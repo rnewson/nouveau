@@ -27,6 +27,7 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYPointField;
@@ -67,9 +68,18 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
         case "text":
             return new TextField(name, node.get("value").asText(),
                     node.get("stored").asBoolean() ? Store.YES : Store.NO);
+        case "stored":
+            if (node.has("numeric_value")) {
+                return new StoredField(name, node.get("numeric_value").asDouble());
+            }
+            if (node.has("string_value")) {
+                return new StoredField(name, node.get("string_value").asText());
+            }
+            if (node.has("binary_value")) {
+                return new StoredField(name, node.get("binary_value").binaryValue());
+            }
         }
-
-        return null;
+        throw new IOException(type + " not a valid type of field");
     }
 
 }
