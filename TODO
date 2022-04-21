@@ -15,6 +15,7 @@ After reaching dreyfus parity, nouveau will diverge;
 
 * no javascript eval
 * ddoc will require an index schema, mapping couchdb document fields to lucene fields
+* spatial-extras and spatial3d support
 
 interim ideas
 
