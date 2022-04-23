@@ -115,7 +115,9 @@ public class SearchResource {
 
             final List<Field> fields = new ArrayList<Field>(doc.getFields().size());
             for (IndexableField field : doc.getFields()) {
-                fields.add(convertField(field));
+                if (!field.name().equals("_id")) {
+                    fields.add(convertField(field));
+                }
             }
             hits.add(new SearchHit(doc.get("_id"), order, fields));
         }
