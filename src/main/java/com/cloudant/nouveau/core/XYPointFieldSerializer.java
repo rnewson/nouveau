@@ -23,7 +23,7 @@ public class XYPointFieldSerializer extends StdSerializer<XYPointField> {
     @Override
     public void serialize(XYPointField field, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("type", "xy");
+        gen.writeStringField("type", "xy_point");
         gen.writeStringField("name", field.name());
         final BytesRef bytesRef = field.binaryValue();
         gen.writeNumberField("x", XYEncodingUtils.decode(bytesRef.bytes, 0));

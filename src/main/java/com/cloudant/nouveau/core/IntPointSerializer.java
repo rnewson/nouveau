@@ -21,7 +21,7 @@ public class IntPointSerializer extends StdSerializer<IntPoint> {
     @Override
     public void serialize(IntPoint field, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("type", "int");
+        gen.writeStringField("type", "int_point");
         gen.writeStringField("name", field.name());
         gen.writeNumberField("value", field.numericValue().intValue());
         gen.writeEndObject();

@@ -64,7 +64,7 @@ public class LuceneSerializationTest {
     public void testSerializationDoublePoint() throws Exception {
         final String str = """
                     {
-                        "type": "double",
+                        "type": "double_point",
                         "name": "doublefoo",
                         "value": 12.0
                     }
@@ -76,7 +76,7 @@ public class LuceneSerializationTest {
     public void testSerializationIntPoint() throws Exception {
         final String str = """
                     {
-                        "type": "int",
+                        "type": "int_point",
                         "name": "intfoo",
                         "value": 13
                     }
@@ -88,7 +88,7 @@ public class LuceneSerializationTest {
     public void testSerializationFloatPoint() throws Exception {
         final String str = """
                     {
-                        "type": "float",
+                        "type": "float_point",
                         "name": "floatfoo",
                         "value": 14.5
                     }
@@ -100,7 +100,7 @@ public class LuceneSerializationTest {
     public void testSerializationLongPoint() throws Exception {
         final String str = """
                     {
-                        "type": "long",
+                        "type": "long_point",
                         "name": "longfoo",
                         "value": 15
                     }
@@ -112,7 +112,7 @@ public class LuceneSerializationTest {
     public void testSerializationXYPoint() throws Exception {
         final String str = """
                     {
-                        "type": "xy",
+                        "type": "xy_point",
                         "name": "xyfoo",
                         "x": 2.0,
                         "y": 4.0
@@ -125,9 +125,9 @@ public class LuceneSerializationTest {
     public void testSerializationStoredFieldBytesRef() throws Exception {
         final String str = """
             {
-                "type": "stored",
+                "type": "stored_binary",
                 "name": "storedfoo",
-                "binary_value": "aGVsbG8="
+                "value": "aGVsbG8="
             }
         """;
         roundtripTest(str, new StoredField("storedfoo", new BytesRef("hello")));
@@ -137,9 +137,9 @@ public class LuceneSerializationTest {
     public void testSerializationStoredFieldNumber() throws Exception {
         final String str = """
             {
-                "type": "stored",
+                "type": "stored_double",
                 "name": "storedfoo",
-                "numeric_value": 123.456
+                "value": 123.456
             }
         """;
         roundtripTest(str, new StoredField("storedfoo", 123.456));
@@ -149,9 +149,9 @@ public class LuceneSerializationTest {
     public void testSerializationStoredString() throws Exception {
         final String str = """
             {
-                "type": "stored",
+                "type": "stored_string",
                 "name": "storedfoo",
-                "string_value": "foo"
+                "value": "foo"
             }
         """;
         roundtripTest(str, new StoredField("storedfoo", "foo"));

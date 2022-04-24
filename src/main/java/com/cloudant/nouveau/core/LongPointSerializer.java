@@ -21,7 +21,7 @@ public class LongPointSerializer extends StdSerializer<LongPoint> {
     @Override
     public void serialize(LongPoint field, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("type", "long");
+        gen.writeStringField("type", "long_point");
         gen.writeStringField("name", field.name());
         gen.writeNumberField("value", field.numericValue().longValue());
         gen.writeEndObject();

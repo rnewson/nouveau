@@ -22,16 +22,20 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
+import org.apache.lucene.document.DoubleDocValuesField;
 import org.apache.lucene.document.DoublePoint;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYPointField;
+import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.util.BytesRef;
 
 public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
 
@@ -52,15 +56,15 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
         final String type = node.get("type").asText();
 
         switch (type) {
-        case "double":
+        case "double_point":
             return new DoublePoint(name, node.get("value").doubleValue());
-        case "float":
+        case "float_point":
             return new FloatPoint(name, node.get("value").floatValue());
-        case "int":
+        case "int_point":
             return new IntPoint(name, node.get("value").intValue());
-        case "long":
+        case "long_point":
             return new LongPoint(name, node.get("value").longValue());
-        case "xy":
+        case "xy_point":
             return new XYPointField(name, node.get("x").floatValue(), node.get("y").floatValue());
         case "string":
             return new StringField(name, node.get("value").asText(),
@@ -68,16 +72,18 @@ public class IndexableFieldDeserializer extends StdDeserializer<IndexableField> 
         case "text":
             return new TextField(name, node.get("value").asText(),
                     node.get("stored").asBoolean() ? Store.YES : Store.NO);
-        case "stored":
-            if (node.has("numeric_value")) {
-                return new StoredField(name, node.get("numeric_value").asDouble());
-            }
-            if (node.has("string_value")) {
-                return new StoredField(name, node.get("string_value").asText());
-            }
-            if (node.has("binary_value")) {
-                return new StoredField(name, node.get("binary_value").binaryValue());
-            }
+        case "stored_double":
+            return new StoredField(name, node.get("value").asDouble());
+        case "stored_string":
+                return new StoredField(name, node.get("value").asText());
+        case "stored_binary":
+            return new StoredField(name, node.get("value").binaryValue());
+        case "sorted_set_dv":
+            return new SortedSetDocValuesFacetField(name, node.get("value").asText());
+        case "sorted_dv":
+            return new SortedDocValuesField(name, new BytesRef(node.get("value").binaryValue()));
+        case "double_dv":
+            return new DoubleDocValuesField(name, node.get("value").asDouble());
         }
         throw new IOException(type + " not a valid type of field");
     }

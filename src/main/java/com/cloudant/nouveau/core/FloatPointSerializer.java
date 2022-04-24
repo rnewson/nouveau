@@ -21,7 +21,7 @@ public class FloatPointSerializer extends StdSerializer<FloatPoint> {
     @Override
     public void serialize(FloatPoint field, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("type", "float");
+        gen.writeStringField("type", "float_point");
         gen.writeStringField("name", field.name());
         gen.writeNumberField("value", field.numericValue().floatValue());
         gen.writeEndObject();

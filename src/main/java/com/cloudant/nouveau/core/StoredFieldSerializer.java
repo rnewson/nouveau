@@ -22,16 +22,21 @@ public class StoredFieldSerializer extends StdSerializer<StoredField> {
     @Override
     public void serialize(StoredField field, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("type", "stored");
-        gen.writeStringField("name", field.name());
-
         if (field.numericValue() != null) {
-            gen.writeNumberField("numeric_value", field.numericValue().doubleValue());
+            gen.writeStringField("type", "stored_double");
         } else if (field.stringValue() != null) {
-            gen.writeStringField("string_value", field.stringValue());
+            gen.writeStringField("type", "stored_string");
+        } else if (field.binaryValue() != null) {
+            gen.writeStringField("type", "stored_binary");
+        }
+        gen.writeStringField("name", field.name());
+        if (field.numericValue() != null) {
+            gen.writeNumberField("value", field.numericValue().doubleValue());
+        } else if (field.stringValue() != null) {
+            gen.writeStringField("value", field.stringValue());
         } else if (field.binaryValue() != null) {
             final BytesRef bytesRef = field.binaryValue();
-            gen.writeFieldName("binary_value");
+            gen.writeFieldName("value");
             gen.writeBinary(bytesRef.bytes, bytesRef.offset, bytesRef.length);
         }
 
