@@ -23,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.dropwizard.jackson.JsonSnakeCase;
+import io.dropwizard.validation.ValidationMethod;
 
 @JsonSnakeCase
 public class SearchRequest {
@@ -30,11 +31,17 @@ public class SearchRequest {
     @NotNull
     private String query;
 
+    @Min(0)
+    @Max(10_000)
+    private int skip;
+
     @Min(1)
     @Max(200)
     private int limit = 25;
 
     private List<String> sort;
+
+    private List<Object> after;
 
     @SuppressWarnings("unused")
     public SearchRequest() {
@@ -60,9 +67,20 @@ public class SearchRequest {
         return sort;
     }
 
+    @JsonProperty
+    public List<Object> getAfter() {
+        return after;
+    }
+
+    @ValidationMethod(message="specify one of skip or after")
+    public boolean isValidPagination() {
+        return skip == 0 || after == null;
+    }
+
     @Override
     public String toString() {
-        return "SearchRequest [limit=" + limit + ", query=" + query + ", sort=" + sort + "]";
+        return "SearchRequest [after=" + after + ", limit=" + limit + ", query=" + query + ", skip=" + skip + ", sort="
+                + sort + "]";
     }
 
 }

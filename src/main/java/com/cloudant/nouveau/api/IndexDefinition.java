@@ -14,6 +14,7 @@
 
 package com.cloudant.nouveau.api;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.NotEmpty;
@@ -29,6 +30,9 @@ public class IndexDefinition {
     private String defaultAnalyzer;
 
     private Map<String, String> fieldAnalyzers;
+
+    // TODO let user specify sort order
+    private List<String> sortOrder;
 
     @SuppressWarnings("unused")
     public IndexDefinition() {
