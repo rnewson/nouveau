@@ -14,12 +14,15 @@
 
 package com.cloudant.nouveau;
 
+import java.util.concurrent.ExecutorService;
+
 import com.cloudant.nouveau.core.AnalyzerFactory;
 import com.cloudant.nouveau.core.BytesRefSerializer;
 import com.cloudant.nouveau.core.DocumentFactory;
 import com.cloudant.nouveau.core.FileAlreadyExistsExceptionMapper;
 import com.cloudant.nouveau.core.FileNotFoundExceptionMapper;
 import com.cloudant.nouveau.core.IndexManager;
+import com.cloudant.nouveau.core.ParallelSearcherFactory;
 import com.cloudant.nouveau.core.UpdatesOutOfOrderExceptionMapper;
 import com.cloudant.nouveau.health.AnalyzeHealthCheck;
 import com.cloudant.nouveau.health.IndexManagerHealthCheck;
@@ -50,6 +53,12 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         final DocumentFactory documentFactory = new DocumentFactory();
         final AnalyzerFactory analyzerFactory = new AnalyzerFactory();
 
+        final ExecutorService searchExecutor =
+            environment.lifecycle().executorService("searches").build();
+
+        final ParallelSearcherFactory searcherFactory = new ParallelSearcherFactory();
+        searcherFactory.setExecutor(searchExecutor);
+
         final ObjectMapper objectMapper = environment.getObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(BytesRef.class, new BytesRefSerializer());
@@ -62,6 +71,7 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         indexManager.setIdleSeconds(configuration.getIdleSeconds());
         indexManager.setAnalyzerFactory(analyzerFactory);
         indexManager.setObjectMapper(objectMapper);
+        indexManager.setSearcherFactory(searcherFactory);
         environment.lifecycle().manage(indexManager);
 
         environment.jersey().register(new FileNotFoundExceptionMapper());

@@ -46,6 +46,7 @@ import com.github.benmanes.caffeine.cache.Scheduler;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -244,6 +245,8 @@ public class IndexManager implements Managed {
     @NotNull
     private ObjectMapper objectMapper;
 
+    private SearcherFactory searcherFactory;
+
     private LoadingCache<String, Index> cache;
 
     public Index acquire(final String name) throws IOException {
@@ -330,6 +333,10 @@ public class IndexManager implements Managed {
         this.objectMapper = objectMapper;
     }
 
+    public void setSearcherFactory(final SearcherFactory searcherFactory) {
+        this.searcherFactory = searcherFactory;
+    }
+
     @Override
     public void start() throws IOException {
         cache = Caffeine.newBuilder()
@@ -379,7 +386,7 @@ public class IndexManager implements Managed {
         final Path path = indexPath(name);
         final Directory dir = directory(path);
         final IndexWriter writer = newWriter(dir, analyzer);
-        final SearcherManager searcherManager = new SearcherManager(writer, null);
+        final SearcherManager searcherManager = new SearcherManager(writer, searcherFactory);
         final long updateSeq = getUpdateSeq(writer);
         return new Index(name, dir, writer, searcherManager, analyzer, updateSeq);
     }
