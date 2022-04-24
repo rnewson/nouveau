@@ -12,7 +12,7 @@ public class BytesRefSerializer extends JsonSerializer<BytesRef> {
 
 	@Override
 	public void serialize(BytesRef bytesRef, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-	    jsonGenerator.writeString(bytesRef.utf8ToString());
+	    jsonGenerator.writeBinary(bytesRef.bytes, bytesRef.offset, bytesRef.length);
 	}
 
 }
