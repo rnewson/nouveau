@@ -403,7 +403,6 @@ public class IndexManager implements Managed {
             try {
                 final IndexWriterConfig config = new IndexWriterConfig(analyzer);
                 config.setCommitOnClose(true);
-                config.setIndexSort(new Sort(new SortField("_id", SortField.Type.STRING)));
                 config.setUseCompoundFile(false);
                 return new IndexWriter(dir, config);
             } catch (LockObtainFailedException e) {

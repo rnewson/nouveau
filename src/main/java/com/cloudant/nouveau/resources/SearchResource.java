@@ -63,6 +63,9 @@ public class SearchResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
     private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
+    private static final Sort DEFAULT_SORT = new Sort(SortField.FIELD_SCORE,
+                                                      new SortField("_id", SortField.Type.STRING));
+
     private final IndexManager indexManager;
 
     public SearchResource(final IndexManager indexManager) {
@@ -80,13 +83,8 @@ public class SearchResource {
             searcherManager.maybeRefreshBlocking();
             final IndexSearcher searcher = searcherManager.acquire();
             try {
-                final TopDocs topDocs;
-                if (searchRequest.hasSort()) {
-                    final Sort sort = convertSort(searchRequest.getSort());
-                    topDocs = searcher.search(query, searchRequest.getLimit(), sort);
-                } else {
-                    topDocs = searcher.search(query, searchRequest.getLimit());
-                }
+                final Sort sort = toSort(searchRequest);
+                final TopDocs topDocs = searcher.search(query, searchRequest.getLimit(), sort);
                 return toSearchResults(searcher, topDocs);
             } catch (IllegalStateException e) {
                 throw new WebApplicationException(e.getMessage(), e, Status.BAD_REQUEST);
@@ -104,14 +102,8 @@ public class SearchResource {
             final Document doc = searcher.doc(scoreDoc.doc);
 
             final List<Object> order;
-            if (scoreDoc instanceof FieldDoc) {
-                final FieldDoc fieldDoc = (FieldDoc) scoreDoc;
-                order = new ArrayList<Object>(fieldDoc.fields.length + 1);
-                order.addAll(Arrays.asList(fieldDoc.fields));
-                order.add(doc.get("_id"));
-            } else {
-                order = Arrays.asList(scoreDoc.score, doc.get("_id"));
-            }
+            final FieldDoc fieldDoc = (FieldDoc) scoreDoc;
+            order = Arrays.asList(fieldDoc.fields);
 
             final List<Field> fields = new ArrayList<Field>(doc.getFields().size());
             for (IndexableField field : doc.getFields()) {
@@ -129,6 +121,18 @@ public class SearchResource {
             return new DoubleField(field.name(), (double) field.numericValue(), false, false);
         }
         return new StringField(field.name(), field.stringValue(), false, false);
+    }
+
+    // Ensure _id is final sort field so we can paginate.
+    private Sort toSort(final SearchRequest searchRequest) {
+        if (!searchRequest.hasSort()) {
+            return DEFAULT_SORT;
+        }
+        final List<String> sort = new ArrayList<String>(searchRequest.getSort());
+        if (!"_id<string>".equals(sort.get(sort.size()))) {
+            sort.add("_id<string>");
+        }
+        return convertSort(sort);
     }
 
     private Sort convertSort(final List<String> sort) {
