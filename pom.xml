@@ -19,6 +19,7 @@
     <dropwizard.version>2.0.29</dropwizard.version>
     <lucene.version>9.1.0</lucene.version>
     <slf4j.version>1.7.32</slf4j.version>
+    <junit5.version>5.8.2</junit5.version>
   </properties>
 
   <dependencyManagement>
@@ -26,7 +27,7 @@
 	  <dependency>
 		<groupId>org.junit</groupId>
 		<artifactId>junit-bom</artifactId>
-		<version>5.8.2</version>
+		<version>${junit5.version}</version>
 		<type>pom</type>
 		<scope>import</scope>
 	  </dependency>
@@ -104,21 +105,21 @@
     <dependency>
 	  <groupId>org.junit.jupiter</groupId>
 	  <artifactId>junit-jupiter</artifactId>
+      <version>${junit5.version}</version>
 	  <scope>test</scope>
 	</dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>3.22.0</version>
       <scope>test</scope>
     </dependency>
-<!--     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>test</scope>
-    </dependency>
--->
   </dependencies>
 
   <build>
@@ -170,6 +171,10 @@
           </archive>
         </configuration>
       </plugin>
+      <plugin>
+		<artifactId>maven-surefire-plugin</artifactId>
+		<version>2.22.2</version>
+	  </plugin>
     </plugins>
   </build>
 
