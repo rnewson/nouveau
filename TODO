@@ -25,11 +25,22 @@ interim ideas
 * in nouveau branch of couchdb, remove dreyfus entirely and put nouveau at _search_analyze, _search,
 
 
+search options
+
+* give the user the fastest options possible
+** default order is by relevance. the index-time ordering by _id stabilises the shard merging, but you can't
+** use bookmarks.
+* let user specify index sort order (we'll add _id to the end if they do)
+* indicate in response if we benefited from early termination.
 
 
 bookmark algorithm
 
-do it at the end
-extract range from each hit's order using mem3:shard/2, keep the last result for each range
+users may do basic pagination (where we find top skip+limit and slice out the right bits) up to 10,000 deep.
+Then they must use bookmarks.
 
-ukeymerge it with previous bookmark if passed
+bookmarks is opt-in, request must set bookmark to "*" and must specify a sort order that ends in _id<string>, or
+we reject the request.
+
+the bookmark is set of the highest orders from each participating shard range, including the ones from the previous
+bookmark.
