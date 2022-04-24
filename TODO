@@ -4,6 +4,8 @@ targeted dreyfus feature parity
 * grouping
 * faceting
 * partitioned db support
+* ken integration
+* delete indexes on db deletion
 
 not targeted
 
