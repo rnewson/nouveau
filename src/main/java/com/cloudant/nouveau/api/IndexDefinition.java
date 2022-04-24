@@ -24,24 +24,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.jackson.JsonSnakeCase;
 
 @JsonSnakeCase
-public class IndexDefinition {
+public class IndexDefinition implements Sortable {
 
     @NotEmpty
     private String defaultAnalyzer;
 
     private Map<String, String> fieldAnalyzers;
 
-    // TODO let user specify sort order
-    private List<String> sortOrder;
+    private List<String> indexSort;
 
     @SuppressWarnings("unused")
     public IndexDefinition() {
         // Jackson deserialization
-    }
-
-    public IndexDefinition(final String defaultAnalyzer, final Map<String, String> fieldAnalyzers) {
-        this.defaultAnalyzer = defaultAnalyzer;
-        this.fieldAnalyzers = fieldAnalyzers;
     }
 
     @JsonProperty
@@ -67,9 +61,20 @@ public class IndexDefinition {
     }
 
     @Override
+    public boolean hasSort() {
+        return indexSort != null && !indexSort.isEmpty();
+    }
+
+    @JsonProperty
+    @Override
+    public List<String> getSort() {
+        return indexSort;
+    }
+
+    @Override
     public String toString() {
         return "IndexDefinition [defaultAnalyzer=" + defaultAnalyzer + ", fieldAnalyzers=" + fieldAnalyzers
-                + "]";
+                + ", indexSort=" + indexSort + "]";
     }
 
 }

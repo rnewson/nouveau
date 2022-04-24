@@ -41,7 +41,10 @@ public class IndexManagerHealthCheck extends HealthCheck {
             // Ignored, index might not exist yet.
         }
 
-        indexManager.create(name, new IndexDefinition("standard", null));
+        final IndexDefinition def = new IndexDefinition();
+        def.setDefaultAnalyzer("standard");
+        indexManager.create(name, def);
+
         final Index index = indexManager.acquire(name);
         try {
             final IndexWriter writer = index.getWriter();

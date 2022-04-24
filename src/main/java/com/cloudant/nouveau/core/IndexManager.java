@@ -65,6 +65,7 @@ public class IndexManager implements Managed {
     private static final int RETRY_LIMIT = 500;
     private static final int RETRY_SLEEP_MS = 5;
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexManager.class);
+    private static final Sort DEFAULT_INDEX_SORT = new Sort(new SortField("_id", SortField.Type.STRING));
 
     public class Index {
         private final String name;
@@ -378,7 +379,8 @@ public class IndexManager implements Managed {
         final Analyzer analyzer =  analyzerFactory.fromDefinition(indexDefinition);
         final Path path = indexPath(name);
         final Directory dir = directory(path);
-        final IndexWriter writer = newWriter(dir, analyzer);
+        final Sort indexSort = LuceneUtils.toSort(indexDefinition, DEFAULT_INDEX_SORT);
+        final IndexWriter writer = newWriter(dir, analyzer, indexSort);
         final SearcherManager searcherManager = new SearcherManager(writer, null);
         final long updateSeq = getUpdateSeq(writer);
         return new Index(name, dir, writer, searcherManager, analyzer, updateSeq);
@@ -397,12 +399,13 @@ public class IndexManager implements Managed {
         return 0L;
     }
 
-    private IndexWriter newWriter(final Directory dir, final Analyzer analyzer) throws IOException {
+    private IndexWriter newWriter(final Directory dir, final Analyzer analyzer, final Sort indexSort) throws IOException {
         LockObtainFailedException exceptionThrown = null;
         for (int i = 0; i < RETRY_LIMIT; i++) {
             try {
                 final IndexWriterConfig config = new IndexWriterConfig(analyzer);
                 config.setCommitOnClose(true);
+                config.setIndexSort(indexSort);
                 config.setUseCompoundFile(false);
                 return new IndexWriter(dir, config);
             } catch (LockObtainFailedException e) {

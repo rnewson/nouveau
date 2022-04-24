@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -40,6 +38,7 @@ import com.cloudant.nouveau.api.SearchResults;
 import com.cloudant.nouveau.api.StringField;
 import com.cloudant.nouveau.core.IndexManager;
 import com.cloudant.nouveau.core.IndexManager.Index;
+import com.cloudant.nouveau.core.LuceneUtils;
 import com.cloudant.nouveau.core.QueryParserException;
 import com.codahale.metrics.annotation.Timed;
 
@@ -62,9 +61,8 @@ import org.slf4j.LoggerFactory;
 public class SearchResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
-    private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
-    private static final Sort DEFAULT_SORT = new Sort(SortField.FIELD_SCORE,
-                                                      new SortField("_id", SortField.Type.STRING));
+    private static final Sort DEFAULT_SEARCH_SORT = new Sort(
+        SortField.FIELD_SCORE,  new SortField("_id", SortField.Type.STRING));
 
     private final IndexManager indexManager;
 
@@ -83,7 +81,7 @@ public class SearchResource {
             searcherManager.maybeRefreshBlocking();
             final IndexSearcher searcher = searcherManager.acquire();
             try {
-                final Sort sort = toSort(searchRequest);
+                final Sort sort = LuceneUtils.toSort(searchRequest, DEFAULT_SEARCH_SORT);
                 final TopDocs topDocs = searcher.search(query, searchRequest.getLimit(), sort);
                 return toSearchResults(searcher, topDocs);
             } catch (IllegalStateException e) {
@@ -121,46 +119,6 @@ public class SearchResource {
             return new DoubleField(field.name(), (double) field.numericValue(), false, false);
         }
         return new StringField(field.name(), field.stringValue(), false, false);
-    }
-
-    // Ensure _id is final sort field so we can paginate.
-    private Sort toSort(final SearchRequest searchRequest) {
-        if (!searchRequest.hasSort()) {
-            return DEFAULT_SORT;
-        }
-        final List<String> sort = new ArrayList<String>(searchRequest.getSort());
-        if (!"_id<string>".equals(sort.get(sort.size()))) {
-            sort.add("_id<string>");
-        }
-        return convertSort(sort);
-    }
-
-    private Sort convertSort(final List<String> sort) {
-        final SortField[] fields = new SortField[sort.size()];
-        for (int i = 0; i < sort.size(); i++) {
-            fields[0] = convertSortField(sort.get(i));
-        }
-        return new Sort(fields);
-    }
-
-    private SortField convertSortField(final String sortString) {
-        final Matcher m = SORT_FIELD_RE.matcher(sortString);
-        if (!m.matches()) {
-            throw new WebApplicationException(
-                sortString + " is not a valid sort parameter", Status.BAD_REQUEST);
-        }
-        final boolean reverse = "-".equals(m.group(1));
-        final SortField.Type type;
-        switch (m.group(3)) {
-        case "string":
-            type = SortField.Type.STRING;
-            break;
-        case "number":
-        default:
-            type = SortField.Type.DOUBLE;
-            break;
-        }
-        return new SortField(m.group(2), type, reverse);
     }
 
 }

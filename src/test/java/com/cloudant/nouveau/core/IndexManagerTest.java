@@ -52,7 +52,8 @@ public class IndexManagerTest {
 
     @Test
     public void testCreate() throws Exception {
-        final IndexDefinition def = new IndexDefinition("standard", null);
+        final IndexDefinition def = new IndexDefinition();
+        def.setDefaultAnalyzer("standard");
         manager.create("foo", def);
     }
 

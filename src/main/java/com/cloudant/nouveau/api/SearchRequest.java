@@ -26,7 +26,7 @@ import io.dropwizard.jackson.JsonSnakeCase;
 import io.dropwizard.validation.ValidationMethod;
 
 @JsonSnakeCase
-public class SearchRequest {
+public class SearchRequest implements Sortable {
 
     @NotNull
     private String query;
@@ -58,11 +58,13 @@ public class SearchRequest {
         return limit;
     }
 
+    @Override
     public boolean hasSort() {
         return sort != null;
     }
 
     @JsonProperty
+    @Override
     public List<String> getSort() {
         return sort;
     }
