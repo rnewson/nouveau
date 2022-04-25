@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
@@ -279,7 +280,27 @@ public class IndexManager implements Managed {
         createNewIndex(name, indexDefinition);
     }
 
-    public void delete(final String name) throws IOException {
+    public void deleteAll(final String path) throws IOException {
+        final Path rootPath = indexRootPath(path);
+        if (!rootPath.toFile().exists()) {
+            return;
+        }
+        Stream<Path> stream = Files.find(rootPath, 100,
+            (p, attr) -> attr.isDirectory() && isIndex(p));
+        try {
+            stream.forEach((p) -> {
+                try {
+                    deleteIndex(rootDir.relativize(p).toString());
+                } catch (Exception e) {
+                    LOGGER.error("I/O exception deleting " + p, e);
+                }
+            });
+        } finally {
+            stream.close();
+        }
+    }
+
+    private void deleteIndex(final String name) throws IOException {
         final Index index = acquire(name);
         try {
             index.deleteOnClose.set(true);
@@ -424,6 +445,10 @@ public class IndexManager implements Managed {
             }
         }
         throw exceptionThrown;
+    }
+
+    private boolean isIndex(final Path path) {
+        return path.resolve("index_definition.json").toFile().exists();
     }
 
     private Path indexDefinitionPath(final String name) {
