@@ -36,7 +36,7 @@ public class IndexManagerHealthCheck extends HealthCheck {
     protected Result check() throws Exception {
         final String name = "_____test";
         try {
-            indexManager.delete(name);
+            indexManager.deleteAll(name);
         } catch (IOException e) {
             // Ignored, index might not exist yet.
         }
@@ -50,7 +50,7 @@ public class IndexManagerHealthCheck extends HealthCheck {
                 writer.commit();
                 return Result.healthy();
             } finally {
-                indexManager.delete(name);
+                indexManager.deleteAll(name);
             }
         } finally {
             indexManager.release(index);

@@ -73,8 +73,8 @@ public class IndexResource {
     }
 
     @DELETE
-    public void deleteIndex(@PathParam("name") String name) throws IOException {
-        indexManager.delete(name);
+    public void deletePath(@PathParam("name") String path) throws IOException {
+        indexManager.deleteAll(path);
     }
 
     @PUT
