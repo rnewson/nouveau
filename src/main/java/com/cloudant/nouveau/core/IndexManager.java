@@ -98,7 +98,7 @@ public class IndexManager implements Managed {
             this.analyzer = analyzer;
             this.queryParser = new ThreadLocal<QueryParser>() {
                     @Override protected QueryParser initialValue() {
-                        return new StandardQueryParser("default", analyzer);
+                        return new NouveauQueryParser("default", analyzer);
                     }
             };
             this.updateSeq.set(updateSeq);
