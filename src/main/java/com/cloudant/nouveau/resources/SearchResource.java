@@ -44,6 +44,9 @@ import com.cloudant.nouveau.core.QueryParserException;
 import com.codahale.metrics.annotation.Timed;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.range.DoubleRange;
+import org.apache.lucene.facet.range.DoubleRangeFacetCounts;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
@@ -78,15 +81,19 @@ public class SearchResource {
             final Query query = index.getQueryParser().parse(searchRequest.getQuery());
             final SearcherManager searcherManager = index.getSearcherManager();
             searcherManager.maybeRefreshBlocking();
+            final FacetsCollector fc = new FacetsCollector();
             final IndexSearcher searcher = searcherManager.acquire();
             try {
                 final TopDocs topDocs;
                 if (searchRequest.hasSort()) {
                     final Sort sort = convertSort(searchRequest.getSort());
-                    topDocs = searcher.search(query, searchRequest.getLimit(), sort);
+                    topDocs = FacetsCollector.search(searcher, query, searchRequest.getLimit(), sort, fc);
                 } else {
-                    topDocs = searcher.search(query, searchRequest.getLimit());
+                    topDocs = FacetsCollector.search(searcher, query, searchRequest.getLimit(), fc);
                 }
+                // collect facets if asked for;
+                DoubleRangeFacetCounts d = new DoubleRangeFacetCounts("bar", fc, new DoubleRange("1 to 1000 inc", 1.0, true, 1000.0, true));
+                LOGGER.info("facets " + d.getTopChildren(10, "bar"));
                 return toSearchResults(searcher, topDocs);
             } catch (IllegalStateException e) {
                 throw new WebApplicationException(e.getMessage(), e, Status.BAD_REQUEST);
