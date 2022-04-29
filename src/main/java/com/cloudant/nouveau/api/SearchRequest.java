@@ -41,6 +41,11 @@ public class SearchRequest {
         // Jackson deserialization
     }
 
+    public SearchRequest(final String query, final int limit) {
+        this.query = query;
+        this.limit = limit;
+    }
+
     @JsonProperty
     public String getQuery() {
         return query;
