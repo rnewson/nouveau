@@ -17,22 +17,19 @@ package com.cloudant.nouveau;
 import java.util.concurrent.ExecutorService;
 
 import com.cloudant.nouveau.core.AnalyzerFactory;
-import com.cloudant.nouveau.core.BytesRefSerializer;
 import com.cloudant.nouveau.core.DocumentFactory;
 import com.cloudant.nouveau.core.FileAlreadyExistsExceptionMapper;
 import com.cloudant.nouveau.core.FileNotFoundExceptionMapper;
 import com.cloudant.nouveau.core.IndexManager;
 import com.cloudant.nouveau.core.ParallelSearcherFactory;
 import com.cloudant.nouveau.core.UpdatesOutOfOrderExceptionMapper;
+import com.cloudant.nouveau.core.ser.LuceneModule;
 import com.cloudant.nouveau.health.AnalyzeHealthCheck;
 import com.cloudant.nouveau.health.IndexManagerHealthCheck;
 import com.cloudant.nouveau.resources.AnalyzeResource;
 import com.cloudant.nouveau.resources.IndexResource;
 import com.cloudant.nouveau.resources.SearchResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import org.apache.lucene.util.BytesRef;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -60,9 +57,7 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         searcherFactory.setExecutor(searchExecutor);
 
         final ObjectMapper objectMapper = environment.getObjectMapper();
-        final SimpleModule module = new SimpleModule();
-        module.addSerializer(BytesRef.class, new BytesRefSerializer());
-        objectMapper.registerModule(module);
+        objectMapper.registerModule(new LuceneModule());
 
         final IndexManager indexManager = new IndexManager();
         indexManager.setRootDir(configuration.getRootDir());

@@ -5,8 +5,7 @@
       "@type": "string",
       "name": "stringfoo",
       "value": "bar",
-      "stored": true,
-      "facet": true
+      "stored": true
     },
     {
       "@type": "text",
@@ -15,11 +14,9 @@
       "stored": true
     },
     {
-      "@type": "double",
+      "@type": "double_point",
       "name": "doublefoo",
-      "value": 12,
-      "stored": true,
-      "facet": true
+      "value": 12
     }
   ]
 }
