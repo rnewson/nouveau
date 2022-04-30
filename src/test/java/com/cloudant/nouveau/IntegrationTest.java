@@ -23,11 +23,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.cloudant.nouveau.api.DocumentUpdateRequest;
-import com.cloudant.nouveau.api.DoubleField;
 import com.cloudant.nouveau.api.IndexDefinition;
 import com.cloudant.nouveau.api.SearchRequest;
 import com.cloudant.nouveau.api.SearchResults;
 
+import org.apache.lucene.document.DoublePoint;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -69,7 +69,7 @@ public class IntegrationTest {
         // Populate index
         for (int i = 0; i < 10; i++) {
             final DocumentUpdateRequest docUpdate = new DocumentUpdateRequest(i + 1,
-                Collections.singletonList(new DoubleField("foo", i, true, true)));
+                Collections.singletonList(new DoublePoint("foo", i)));
             response = 
                 APP.client().target(String.format("%s/index/%s/doc/doc%d", url, indexName, i))
                 .request()

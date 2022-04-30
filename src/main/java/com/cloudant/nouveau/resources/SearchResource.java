@@ -32,12 +32,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import com.cloudant.nouveau.api.DoubleField;
-import com.cloudant.nouveau.api.Field;
 import com.cloudant.nouveau.api.SearchHit;
 import com.cloudant.nouveau.api.SearchRequest;
 import com.cloudant.nouveau.api.SearchResults;
-import com.cloudant.nouveau.api.StringField;
 import com.cloudant.nouveau.core.IndexManager;
 import com.cloudant.nouveau.core.IndexManager.Index;
 import com.cloudant.nouveau.core.QueryParserException;
@@ -113,22 +110,15 @@ public class SearchResource {
                 order = Arrays.asList(scoreDoc.score, doc.get("_id"));
             }
 
-            final List<Field> fields = new ArrayList<Field>(doc.getFields().size());
+            final List<IndexableField> fields = new ArrayList<IndexableField>(doc.getFields());
             for (IndexableField field : doc.getFields()) {
-                if (!field.name().equals("_id")) {
-                    fields.add(convertField(field));
+                if (field.name().equals("_id")) {
+                    fields.remove(field);
                 }
             }
             hits.add(new SearchHit(doc.get("_id"), order, fields));
         }
         return new SearchResults(topDocs.totalHits.value, hits);
-    }
-
-    private Field convertField(final IndexableField field) {
-        if (field.numericValue() != null) {
-            return new DoubleField(field.name(), (double) field.numericValue(), false, false);
-        }
-        return new StringField(field.name(), field.stringValue(), false, false);
     }
 
     private Sort convertSort(final List<String> sort) {
