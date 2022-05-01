@@ -16,18 +16,24 @@ package com.cloudant.nouveau.core.ser;
 
 enum SupportedType {
 
+    binary_dv,
     double_dv,
     double_point,
+    float_dv,
     float_point,
     int_point,
+    latlon_dv,
+    latlon_point,
     long_point,
     sorted_dv,
-    sortedset_dv,
+    sorted_numeric_dv,
+    sorted_set_dv,
     stored_binary,
     stored_double,
     stored_string,
     string,
     text,
+    xy_dv,
     xy_point,
 
 }
