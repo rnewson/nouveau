@@ -1,5 +1,5 @@
 # nouveau
-Lucene 9.10 + DropWizard = Maybe a good search option for Apache CouchDB?
+Lucene 9 + DropWizard = Maybe a good search option for Apache CouchDB?
 
 Nouveau is an experimental search extension for CouchDB 3.x.
 
