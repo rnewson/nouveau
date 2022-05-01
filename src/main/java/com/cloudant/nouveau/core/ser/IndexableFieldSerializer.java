@@ -35,7 +35,7 @@ class IndexableFieldSerializer extends StdSerializer<IndexableField> {
     @Override
     public void serialize(final IndexableField field, final JsonGenerator gen, final SerializerProvider provider)
             throws IOException {
-        final SupportedType type = supportedType(field);
+        final SupportedType type = SupportedType.fromField(field);
         gen.writeStartObject();
         gen.writeStringField("@type", type.toString());
         gen.writeStringField("name", field.name());
@@ -89,51 +89,6 @@ class IndexableFieldSerializer extends StdSerializer<IndexableField> {
             }
         }
         gen.writeEndObject();
-    }
-
-    private SupportedType supportedType(final IndexableField field) {
-        if (field instanceof DoubleDocValuesField) {
-            return SupportedType.double_dv;
-        }
-        if (field instanceof DoublePoint) {
-            return SupportedType.double_point;
-        }
-        if (field instanceof FloatPoint) {
-            return SupportedType.float_point;
-        }
-        if (field instanceof IntPoint) {
-            return SupportedType.int_point;
-        }
-        if (field instanceof LongPoint) {
-            return SupportedType.long_point;
-        }
-        if (field instanceof SortedDocValuesField) {
-            return SupportedType.sorted_dv;
-        }
-        if (field instanceof SortedSetDocValuesField) {
-            return SupportedType.sorted_set_dv;
-        }
-        if (field instanceof StoredField) {
-            final StoredField storedField = (StoredField) field;
-            if (storedField.numericValue() != null) {
-                return SupportedType.stored_double;
-            } else if (storedField.stringValue() != null) {
-                return SupportedType.stored_string;
-            } else if (storedField.binaryValue() != null) {
-                return SupportedType.stored_binary;
-            }
-        }
-        if (field instanceof StringField) {
-            return SupportedType.string;
-        }
-        if (field instanceof TextField) {
-            return SupportedType.text;
-        }
-        if (field instanceof XYPointField) {
-            return SupportedType.xy_point;
-        }
-
-        throw new IllegalArgumentException(field + " is not a supported type");
     }
 
 }
