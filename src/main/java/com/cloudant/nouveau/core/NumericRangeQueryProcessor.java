@@ -17,7 +17,6 @@ package com.cloudant.nouveau.core;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.core.nodes.FieldQueryNode;
