@@ -40,15 +40,11 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path("/index/{name}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class IndexResource {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexResource.class);
 
     private final IndexManager indexManager;
     private final DocumentFactory documentFactory;

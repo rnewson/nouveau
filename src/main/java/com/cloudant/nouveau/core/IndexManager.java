@@ -70,10 +70,8 @@ public class IndexManager implements Managed {
 
     public class Index {
         private final String name;
-        private Directory dir;
         private IndexWriter writer;
         private SearcherManager searcherManager;
-        private Analyzer analyzer;
         private ThreadLocal<QueryParser> queryParser;
         private final AtomicBoolean deleteOnClose = new AtomicBoolean();
         private final AtomicLong updateSeq = new AtomicLong();
@@ -86,16 +84,13 @@ public class IndexManager implements Managed {
 
         private Index(
                       String name,
-                      Directory dir,
                       IndexWriter writer,
                       SearcherManager searcherManager,
                       Analyzer analyzer,
                       long updateSeq) {
             this.name = name;
-            this.dir = dir;
             this.writer = writer;
             this.searcherManager = searcherManager;
-            this.analyzer = analyzer;
             this.queryParser = new ThreadLocal<QueryParser>() {
                     @Override protected QueryParser initialValue() {
                         return new NouveauQueryParser("default", analyzer);
@@ -409,7 +404,7 @@ public class IndexManager implements Managed {
         final IndexWriter writer = newWriter(dir, analyzer);
         final SearcherManager searcherManager = new SearcherManager(writer, searcherFactory);
         final long updateSeq = getUpdateSeq(writer);
-        return new Index(name, dir, writer, searcherManager, analyzer, updateSeq);
+        return new Index(name, writer, searcherManager, analyzer, updateSeq);
     }
 
     private long getUpdateSeq(final IndexWriter writer) throws IOException {
