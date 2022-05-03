@@ -16,7 +16,8 @@ package com.cloudant.nouveau;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -27,7 +28,11 @@ import com.cloudant.nouveau.api.IndexDefinition;
 import com.cloudant.nouveau.api.SearchRequest;
 import com.cloudant.nouveau.api.SearchResults;
 
+import org.apache.lucene.document.DoubleDocValuesField;
 import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.SortedSetDocValuesField;
+import org.apache.lucene.facet.range.DoubleRange;
+import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -69,7 +74,10 @@ public class IntegrationTest {
         // Populate index
         for (int i = 0; i < 10; i++) {
             final DocumentUpdateRequest docUpdate = new DocumentUpdateRequest(i + 1,
-                Collections.singletonList(new DoublePoint("foo", i)));
+                List.of(
+                    new DoublePoint("foo", i), 
+                    new DoubleDocValuesField("baz", i),
+                    new SortedSetDocValuesField("bar", new BytesRef("baz"))));
             response = 
                 APP.client().target(String.format("%s/index/%s/doc/doc%d", url, indexName, i))
                 .request()
@@ -79,16 +87,24 @@ public class IntegrationTest {
         }
 
         // Search index
-        final SearchRequest search = new SearchRequest("*:*", 10);
-        response = 
+        final SearchRequest searchRequest = new SearchRequest();
+        searchRequest.setQuery("*:*");
+        searchRequest.setLimit(10);
+        searchRequest.setCounts(List.of("bar"));
+        searchRequest.setRanges(Map.of("baz", List.of(new DoubleRange("0 to 100 inc", 0.0, true, 100.0, true))));
+
+        response =
                 APP.client().target(String.format("%s/index/%s/search", url, indexName))
                 .request()
-                .post(Entity.entity(search, MediaType.APPLICATION_JSON_TYPE));
-            assertThat(response).extracting(Response::getStatus)
-            .isEqualTo(Response.Status.OK.getStatusCode());
+                .post(Entity.entity(searchRequest, MediaType.APPLICATION_JSON_TYPE));
+
+        assertThat(response).extracting(Response::getStatus).isEqualTo(Response.Status.OK.getStatusCode());
 
         final SearchResults results = response.readEntity(SearchResults.class);
         assertThat(results.getTotalHits()).isEqualTo(10);
+        assertThat(results.getCounts().size()).isEqualTo(1);
+        assertThat(results.getCounts().get("bar").get("baz")).isEqualTo(10);
+        assertThat(results.getRanges().get("baz").get("0 to 100 inc")).isEqualTo(1);
     }
 
     @Test

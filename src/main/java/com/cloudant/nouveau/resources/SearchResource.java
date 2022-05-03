@@ -17,7 +17,10 @@ package com.cloudant.nouveau.resources;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,21 +44,38 @@ import com.cloudant.nouveau.core.QueryParserException;
 import com.codahale.metrics.annotation.Timed;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.Facets;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.FacetsCollectorManager;
+import org.apache.lucene.facet.LabelAndValue;
+import org.apache.lucene.facet.StringDocValuesReaderState;
+import org.apache.lucene.facet.StringValueFacetCounts;
+import org.apache.lucene.facet.range.DoubleRange;
+import org.apache.lucene.facet.range.DoubleRangeFacetCounts;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.search.CollectorManager;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MultiCollectorManager;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldCollector;
+import org.apache.lucene.search.TopScoreDocCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/index/{name}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class SearchResource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
+    private static final DoubleRange[] EMPTY_DOUBLE_RANGE_ARRAY = new DoubleRange[0];
     private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
     private final IndexManager indexManager;
 
@@ -66,22 +86,28 @@ public class SearchResource {
     @POST
     @Timed
     @Path("/search")
-    public SearchResults searchIndex(@PathParam("name") String name, @NotNull @Valid SearchRequest searchRequest) throws IOException, QueryParserException {
+    public SearchResults searchIndex(@PathParam("name") String name, @NotNull @Valid SearchRequest searchRequest)
+            throws IOException, QueryParserException {
         final Index index = indexManager.acquire(name);
         try {
             final Query query = index.getQueryParser().parse(searchRequest.getQuery());
+
+            // Construct CollectorManagers.
+            final MultiCollectorManager cm;
+            final CollectorManager<?, ? extends TopDocs> hits = hitCollector(searchRequest);
+
             final SearcherManager searcherManager = index.getSearcherManager();
             searcherManager.maybeRefreshBlocking();
+
             final IndexSearcher searcher = searcherManager.acquire();
             try {
-                final TopDocs topDocs;
-                if (searchRequest.hasSort()) {
-                    final Sort sort = convertSort(searchRequest.getSort());
-                    topDocs = searcher.search(query, searchRequest.getLimit(), sort);
+                if (searchRequest.hasCounts() || searchRequest.hasRanges()) {
+                    cm = new MultiCollectorManager(hits, new FacetsCollectorManager());
                 } else {
-                    topDocs = searcher.search(query, searchRequest.getLimit());
+                    cm = new MultiCollectorManager(hits);
                 }
-                return toSearchResults(searcher, topDocs);
+                final Object[] reduces = searcher.search(query, cm);
+                return toSearchResults(searchRequest, searcher, reduces);
             } catch (IllegalStateException e) {
                 throw new WebApplicationException(e.getMessage(), e, Status.BAD_REQUEST);
             } finally {
@@ -92,8 +118,33 @@ public class SearchResource {
         }
     }
 
-    private SearchResults toSearchResults(final IndexSearcher searcher, final TopDocs topDocs) throws IOException {
+    private CollectorManager<?, ? extends TopDocs> hitCollector(final SearchRequest searchRequest) {
+        if (searchRequest.hasSort()) {
+            return TopFieldCollector.createSharedManager(
+                    convertSort(searchRequest.getSort()),
+                    searchRequest.getLimit(),
+                    null,
+                    1000);
+        }
+
+        return TopScoreDocCollector.createSharedManager(
+                searchRequest.getLimit(),
+                null,
+                1000);
+    }
+
+    private SearchResults toSearchResults(final SearchRequest searchRequest, final IndexSearcher searcher, final Object[] reduces) throws IOException {
+        final SearchResults result = new SearchResults();
+        collectHits(searcher, (TopDocs)reduces[0], result);
+        if (reduces.length == 2) {
+            collectFacets(searchRequest, searcher, (FacetsCollector)reduces[1], result);
+        }
+        return result;
+    }
+
+    private void collectHits(final IndexSearcher searcher, final TopDocs topDocs, final SearchResults searchResults) throws IOException {
         final List<SearchHit> hits = new ArrayList<SearchHit>(topDocs.scoreDocs.length);
+
         for (final ScoreDoc scoreDoc : topDocs.scoreDocs) {
             final Document doc = searcher.doc(scoreDoc.doc);
 
@@ -113,9 +164,42 @@ public class SearchResource {
                     fields.remove(field);
                 }
             }
+
             hits.add(new SearchHit(doc.get("_id"), order, fields));
         }
-        return new SearchResults(topDocs.totalHits.value, hits);
+
+        searchResults.setTotalHits(topDocs.totalHits.value);
+        searchResults.setHits(hits);
+    }
+
+    private void collectFacets(final SearchRequest searchRequest, final IndexSearcher searcher, final FacetsCollector fc, final SearchResults searchResults) throws IOException {
+        if (searchRequest.hasCounts()) {
+            final Map<String, Map<String, Number>> countsMap = new HashMap<String, Map<String, Number>>(searchRequest.getCounts().size());
+            for (final String field : searchRequest.getCounts()) {
+                final StringDocValuesReaderState state = new StringDocValuesReaderState(searcher.getIndexReader(), field);
+                final StringValueFacetCounts counts = new StringValueFacetCounts(state, fc);
+                countsMap.put(field, collectFacets(counts, 10, field));
+            }
+            searchResults.setCounts(countsMap);
+        }
+
+        if (searchRequest.hasRanges()) {
+            final Map<String, Map<String, Number>> rangesMap = new HashMap<String, Map<String, Number>>(searchRequest.getRanges().size());
+            for (final Entry<String, List<DoubleRange>> entry : searchRequest.getRanges().entrySet()) {
+                final DoubleRangeFacetCounts counts = new DoubleRangeFacetCounts(entry.getKey(), fc, entry.getValue().toArray(EMPTY_DOUBLE_RANGE_ARRAY));
+                rangesMap.put(entry.getKey(), collectFacets(counts, 10, entry.getKey()));
+            }
+            searchResults.setRanges(rangesMap);
+        }
+    }
+
+    private Map<String, Number> collectFacets(final Facets facets, final int topN, final String dim) throws IOException {
+        final FacetResult topChildren = facets.getTopChildren(topN, dim);
+        final Map<String, Number> result = new HashMap<String, Number>(topChildren.childCount);
+        for (final LabelAndValue lv : topChildren.labelValues) {
+            result.put(lv.label, lv.value);
+        }
+        return result;
     }
 
     private Sort convertSort(final List<String> sort) {
@@ -130,18 +214,18 @@ public class SearchResource {
         final Matcher m = SORT_FIELD_RE.matcher(sortString);
         if (!m.matches()) {
             throw new WebApplicationException(
-                sortString + " is not a valid sort parameter", Status.BAD_REQUEST);
+                    sortString + " is not a valid sort parameter", Status.BAD_REQUEST);
         }
         final boolean reverse = "-".equals(m.group(1));
         final SortField.Type type;
         switch (m.group(3)) {
-        case "string":
-            type = SortField.Type.STRING;
-            break;
-        case "number":
-        default:
-            type = SortField.Type.DOUBLE;
-            break;
+            case "string":
+                type = SortField.Type.STRING;
+                break;
+            case "number":
+            default:
+                type = SortField.Type.DOUBLE;
+                break;
         }
         return new SortField(m.group(2), type, reverse);
     }

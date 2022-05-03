@@ -15,12 +15,16 @@
 package com.cloudant.nouveau.api;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.lucene.facet.range.DoubleRange;
 
 import io.dropwizard.jackson.JsonSnakeCase;
 
@@ -34,21 +38,28 @@ public class SearchRequest {
     @Max(200)
     private int limit = 25;
 
-    private List<String> sort;
+    private List<@NotEmpty String> sort;
+
+    private List<@NotEmpty String> counts;
+
+    private Map<@NotEmpty String, List<@NotNull DoubleRange>> ranges;
 
     @SuppressWarnings("unused")
     public SearchRequest() {
         // Jackson deserialization
     }
 
-    public SearchRequest(final String query, final int limit) {
+    public void setQuery(final String query) {
         this.query = query;
-        this.limit = limit;
     }
 
     @JsonProperty
     public String getQuery() {
         return query;
+    }
+
+    public void setLimit(final int limit) {
+        this.limit = limit;
     }
 
     @JsonProperty
@@ -65,9 +76,35 @@ public class SearchRequest {
         return sort;
     }
 
+    public boolean hasCounts() {
+        return counts != null;
+    }
+
+    public void setCounts(final List<String> counts) {
+        this.counts = counts;
+    }
+
+    @JsonProperty
+    public List<String> getCounts() {
+        return counts;
+    }
+
+    public boolean hasRanges() {
+        return ranges != null;
+    }
+
+    public void setRanges(final Map<String, List<DoubleRange>> ranges) {
+        this.ranges = ranges;
+    }
+
+    @JsonProperty
+    public Map<String, List<DoubleRange>> getRanges() {
+        return ranges;
+    }
+
     @Override
     public String toString() {
-        return "SearchRequest [limit=" + limit + ", query=" + query + ", sort=" + sort + "]";
+        return "SearchRequest [query=" + query + ", sort=" + sort + ", limit=" + limit + ", counts=" + counts + ", ranges=" + ranges + "]";
     }
 
 }

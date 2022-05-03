@@ -15,11 +15,14 @@
 package com.cloudant.nouveau.api;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.lucene.facet.range.DoubleRange;
 
 import io.dropwizard.jackson.JsonSnakeCase;
 
@@ -30,14 +33,17 @@ public class SearchResults {
     private long totalHits;
 
     @NotNull
-    private List<SearchHit> hits;
+    private List<@NotNull SearchHit> hits;
+
+    private Map<@NotNull String, Map<@NotNull String, Number>> counts;
+
+    private Map<@NotNull String, Map<@NotNull String, Number>> ranges;
 
     public SearchResults() {
     }
 
-    public SearchResults(final long totalHits, final List<SearchHit> hits) {
+    public void setTotalHits(final long totalHits) {
         this.totalHits = totalHits;
-        this.hits = hits;
     }
 
     @JsonProperty
@@ -45,14 +51,36 @@ public class SearchResults {
         return totalHits;
     }
 
+    public void setHits(final List<SearchHit> hits) {
+        this.hits = hits;
+    }
+
     @JsonProperty
     public List<SearchHit> getHits() {
         return hits;
     }
 
+    public void setCounts(final Map<String, Map<String, Number>> counts) {
+        this.counts = counts;
+    }
+
+    @JsonProperty
+    public Map<String, Map<String, Number>> getCounts() {
+        return counts;
+    }
+
+    public void setRanges(final Map<String, Map<String, Number>> ranges) {
+        this.ranges = ranges;
+    }
+
+    @JsonProperty
+    public Map<String, Map<String, Number>> getRanges() {
+        return ranges;
+    }
+
     @Override
     public String toString() {
-        return "SearchResults [hits=" + hits + ", totalHits=" + totalHits + "]";
+        return "SearchResults [hits=" + hits + ", totalHits=" + totalHits + ", counts=" + counts + ", ranges=" + ranges + "]";
     }
 
 }

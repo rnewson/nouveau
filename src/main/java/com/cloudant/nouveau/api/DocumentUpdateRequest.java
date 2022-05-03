@@ -18,6 +18,7 @@ import java.util.Collection;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,7 +33,7 @@ public class DocumentUpdateRequest {
     private long seq;
 
     @NotEmpty
-    private Collection<IndexableField> fields;
+    private Collection<@NotNull IndexableField> fields;
 
     @SuppressWarnings("unused")
     public DocumentUpdateRequest() {

@@ -16,6 +16,7 @@ package com.cloudant.nouveau.api;
 
 import java.util.List;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +27,7 @@ import io.dropwizard.jackson.JsonSnakeCase;
 public class AnalyzeResponse {
 
     @NotNull
-    private List<String> tokens;
+    private List<@NotEmpty String> tokens;
 
     @SuppressWarnings("unused")
     public AnalyzeResponse() {

@@ -31,10 +31,10 @@ public class SearchHit {
     private String id;
 
     @NotNull
-    private List<Object> order;
+    private List<@NotNull Object> order;
 
     @NotNull
-    private Collection<IndexableField> fields;
+    private Collection<@NotNull IndexableField> fields;
 
     public SearchHit() {
     }

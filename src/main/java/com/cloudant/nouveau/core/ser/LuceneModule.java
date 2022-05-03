@@ -17,14 +17,21 @@ package com.cloudant.nouveau.core.ser;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import org.apache.lucene.facet.range.DoubleRange;
 import org.apache.lucene.index.IndexableField;
 
 public class LuceneModule extends SimpleModule {
 
     public LuceneModule() {
         super("lucene", Version.unknownVersion());
+
+        // IndexableField
         addSerializer(IndexableField.class, new IndexableFieldSerializer());
         addDeserializer(IndexableField.class, new IndexableFieldDeserializer());
+
+        // DoubleRange
+        addSerializer(DoubleRange.class, new DoubleRangeSerializer());
+        addDeserializer(DoubleRange.class, new DoubleRangeDeserializer());
     }
 
 }
