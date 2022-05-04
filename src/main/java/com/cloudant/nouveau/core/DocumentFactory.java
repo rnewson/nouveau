@@ -20,13 +20,10 @@ import com.cloudant.nouveau.api.DocumentUpdateRequest;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 
 public class DocumentFactory {
-
-    private FacetsConfig facetsConfig = new FacetsConfig();
 
     public Document build(final String docId, final DocumentUpdateRequest request) throws IOException {
         final Document result = new Document();
@@ -43,7 +40,7 @@ public class DocumentFactory {
             result.add(field);
         }
 
-        return facetsConfig.build(result);
+        return result;
     }
 
 }

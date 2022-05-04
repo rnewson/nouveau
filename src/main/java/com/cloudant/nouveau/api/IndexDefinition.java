@@ -28,7 +28,7 @@ public class IndexDefinition {
     @NotEmpty
     private String defaultAnalyzer;
 
-    private Map<String, String> fieldAnalyzers;
+    private Map<@NotEmpty String, @NotEmpty String> fieldAnalyzers;
 
     @SuppressWarnings("unused")
     public IndexDefinition() {

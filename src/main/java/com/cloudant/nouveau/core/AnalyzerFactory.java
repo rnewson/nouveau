@@ -17,6 +17,9 @@ package com.cloudant.nouveau.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response.Status;
+
 import com.cloudant.nouveau.api.IndexDefinition;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -153,7 +156,7 @@ public class AnalyzerFactory {
         case "turkish":
             return new TurkishAnalyzer();
         default:
-            throw new IllegalArgumentException(name + " is not a valid analyzer name");
+            throw new WebApplicationException(name + " is not a valid analyzer name", Status.BAD_REQUEST);
         }
     }
 

@@ -33,12 +33,12 @@ import org.apache.lucene.document.LatLonPoint;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.SortedNumericDocValuesField;
+import org.apache.lucene.document.SortedSetDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYDocValuesField;
 import org.apache.lucene.document.XYPointField;
-import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 
@@ -93,7 +93,7 @@ class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
             case stored_binary:
                 return new StoredField(name, node.get("value").binaryValue());
             case sorted_set_dv:
-                return new SortedSetDocValuesFacetField(name, node.get("value").asText());
+                return new SortedSetDocValuesField(name, new BytesRef(node.get("value").binaryValue()));
             case sorted_dv:
                 return new SortedDocValuesField(name, new BytesRef(node.get("value").binaryValue()));
             case sorted_numeric_dv:
