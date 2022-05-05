@@ -44,6 +44,10 @@ public class SearchRequest {
 
     private Map<@NotEmpty String, List<@NotNull DoubleRange>> ranges;
 
+    @Min(1)
+    @Max(100)
+    private int topN = 10;
+
     @SuppressWarnings("unused")
     public SearchRequest() {
         // Jackson deserialization
@@ -100,6 +104,15 @@ public class SearchRequest {
     @JsonProperty
     public Map<String, List<DoubleRange>> getRanges() {
         return ranges;
+    }
+
+    @JsonProperty
+    public void setTopN(final int topN) {
+        this.topN = topN;
+    }
+
+    public int getTopN() {
+        return topN;
     }
 
     @Override
