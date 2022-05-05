@@ -178,7 +178,7 @@ public class SearchResource {
             for (final String field : searchRequest.getCounts()) {
                 final StringDocValuesReaderState state = new StringDocValuesReaderState(searcher.getIndexReader(), field);
                 final StringValueFacetCounts counts = new StringValueFacetCounts(state, fc);
-                countsMap.put(field, collectFacets(counts, 10, field));
+                countsMap.put(field, collectFacets(counts, searchRequest.getTopN(), field));
             }
             searchResults.setCounts(countsMap);
         }
@@ -187,7 +187,7 @@ public class SearchResource {
             final Map<String, Map<String, Number>> rangesMap = new HashMap<String, Map<String, Number>>(searchRequest.getRanges().size());
             for (final Entry<String, List<DoubleRange>> entry : searchRequest.getRanges().entrySet()) {
                 final DoubleRangeFacetCounts counts = new DoubleRangeFacetCounts(entry.getKey(), fc, entry.getValue().toArray(EMPTY_DOUBLE_RANGE_ARRAY));
-                rangesMap.put(entry.getKey(), collectFacets(counts, 10, entry.getKey()));
+                rangesMap.put(entry.getKey(), collectFacets(counts, searchRequest.getTopN(), entry.getKey()));
             }
             searchResults.setRanges(rangesMap);
         }

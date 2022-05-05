@@ -92,6 +92,7 @@ public class IntegrationTest {
         searchRequest.setLimit(10);
         searchRequest.setCounts(List.of("bar"));
         searchRequest.setRanges(Map.of("baz", List.of(new DoubleRange("0 to 100 inc", 0.0, true, 100.0, true))));
+        searchRequest.setTopN(2);
 
         response =
                 APP.client().target(String.format("%s/index/%s/search", url, indexName))
