@@ -53,7 +53,11 @@ In order not to collide with `dreyfus` I've hooked Nouveau in with some uglier p
 This will cause Nouveau to build indexes for each copy (N) and each
 shard range (Q) and then perform a search and return the results. Lots
 of query syntax is working as is sorting on strings and numbers
-(`sort=["fieldnamehere<string>"] or sort=["fieldnamehere<number>"],
+(`sort=["fieldnamehere&lt;string&gt;"] or sort=["fieldnamehere&lt;number&gt;"],
 defaulting to number).
 
+Facet support
 
+Counts of string fields and Ranges for numeric fields;
+
+curl 'foo:bar@localhost:15984/foo/_design/foo/_nsearch/bar?q=*:*&limit=1&ranges={"bar":[{"label":"cheap","min":0,"max":100}]}&counts=["foo"]' -g
