@@ -55,6 +55,7 @@ public class IndexResource {
     }
 
     @GET
+    @SuppressWarnings("resource")
     public IndexInfo indexInfo(@PathParam("name") String name) throws IOException {
         final long updateSeq;
         final int numDocs;
