@@ -66,15 +66,12 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopFieldCollector;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path("/index/{name}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class SearchResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
     private static final DoubleRange[] EMPTY_DOUBLE_RANGE_ARRAY = new DoubleRange[0];
     private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
     private final IndexManager indexManager;
