@@ -202,7 +202,7 @@ public class SearchResource {
     private Sort convertSort(final List<String> sort) {
         final SortField[] fields = new SortField[sort.size()];
         for (int i = 0; i < sort.size(); i++) {
-            fields[0] = convertSortField(sort.get(i));
+            fields[i] = convertSortField(sort.get(i));
         }
         return new Sort(fields);
     }
