@@ -93,5 +93,4 @@ public class LuceneModuleTest {
         assertEquals(expected, actual);
     }
 
-
 }

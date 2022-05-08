@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import org.apache.lucene.search.FieldDoc;
+import org.apache.lucene.util.BytesRef;
 
 public class FieldDocDeserializer extends StdDeserializer<FieldDoc> {
 
@@ -44,9 +45,9 @@ public class FieldDocDeserializer extends StdDeserializer<FieldDoc> {
         for (int i = 0; i < fields.length; i++) {
             final JsonNode field = fieldNode.get(i);
             if (field.isTextual()) {
-                fields[i] = field.asText();
+                fields[i] = new BytesRef(field.asText());
             } else if (field.isNumber()) {
-                fields[i] = field.asDouble();
+                fields[i] = (float) field.asDouble();
             } else {
                 throw new IOException("Unsupported field value: " + field);
             }

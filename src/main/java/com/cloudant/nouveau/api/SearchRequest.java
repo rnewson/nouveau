@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.lucene.facet.range.DoubleRange;
+import org.apache.lucene.search.FieldDoc;
 
 import io.dropwizard.jackson.JsonSnakeCase;
 
@@ -43,6 +44,8 @@ public class SearchRequest {
     private List<@NotEmpty String> counts;
 
     private Map<@NotEmpty String, List<@NotNull DoubleRange>> ranges;
+
+    private FieldDoc after;
 
     @Min(1)
     @Max(100)
@@ -106,18 +109,27 @@ public class SearchRequest {
         return ranges;
     }
 
-    @JsonProperty
     public void setTopN(final int topN) {
         this.topN = topN;
     }
 
+    @JsonProperty
     public int getTopN() {
         return topN;
     }
 
+    public void setAfter(final FieldDoc after) {
+        this.after = after;
+    }
+
+    @JsonProperty
+    public FieldDoc getAfter() {
+        return after;
+    }
+
     @Override
     public String toString() {
-        return "SearchRequest [query=" + query + ", sort=" + sort + ", limit=" + limit + ", counts=" + counts + ", ranges=" + ranges + "]";
+        return "SearchRequest [query=" + query + ", sort=" + sort + ", limit=" + limit + ", after=" + after + ", counts=" + counts + ", ranges=" + ranges + "]";
     }
 
 }

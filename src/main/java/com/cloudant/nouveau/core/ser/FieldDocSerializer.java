@@ -40,8 +40,10 @@ public class FieldDocSerializer extends StdSerializer<FieldDoc> {
         for (final Object o : fieldDoc.fields) {
             if (o instanceof BytesRef) {
                 gen.writeString(((BytesRef) o).utf8ToString());
-            } else {
-                gen.writeObject(o);
+            } else if (o instanceof Double) {
+                gen.writeNumber(((Double)o));
+            }else if (o instanceof Float) {
+                gen.writeNumber(((Float)o));
             }
         }
         gen.writeEndArray();

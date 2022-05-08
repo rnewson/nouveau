@@ -16,7 +16,6 @@ package com.cloudant.nouveau.resources;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,6 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopFieldCollector;
-import org.apache.lucene.search.TopScoreDocCollector;
 
 @Path("/index/{name}")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -73,6 +71,8 @@ import org.apache.lucene.search.TopScoreDocCollector;
 public class SearchResource {
 
     private static final DoubleRange[] EMPTY_DOUBLE_RANGE_ARRAY = new DoubleRange[0];
+    private static final Sort DEFAULT_SORT = new Sort(SortField.FIELD_SCORE,
+            new SortField("_id", SortField.Type.STRING));
     private static final Pattern SORT_FIELD_RE = Pattern.compile("^([-+])?([\\.\\w]+)(?:<(\\w+)>)?$");
     private final IndexManager indexManager;
 
@@ -116,44 +116,30 @@ public class SearchResource {
     }
 
     private CollectorManager<?, ? extends TopDocs> hitCollector(final SearchRequest searchRequest) {
-        if (searchRequest.hasSort()) {
-            return TopFieldCollector.createSharedManager(
-                    convertSort(searchRequest.getSort()),
-                    searchRequest.getLimit(),
-                    null,
-                    1000);
-        }
-
-        return TopScoreDocCollector.createSharedManager(
+        final Sort sort = toSort(searchRequest);
+        return TopFieldCollector.createSharedManager(
+                sort,
                 searchRequest.getLimit(),
-                null,
+                searchRequest.getAfter(),
                 1000);
     }
 
-    private SearchResults toSearchResults(final SearchRequest searchRequest, final IndexSearcher searcher, final Object[] reduces) throws IOException {
+    private SearchResults toSearchResults(final SearchRequest searchRequest, final IndexSearcher searcher,
+            final Object[] reduces) throws IOException {
         final SearchResults result = new SearchResults();
-        collectHits(searcher, (TopDocs)reduces[0], result);
+        collectHits(searcher, (TopDocs) reduces[0], result);
         if (reduces.length == 2) {
-            collectFacets(searchRequest, searcher, (FacetsCollector)reduces[1], result);
+            collectFacets(searchRequest, searcher, (FacetsCollector) reduces[1], result);
         }
         return result;
     }
 
-    private void collectHits(final IndexSearcher searcher, final TopDocs topDocs, final SearchResults searchResults) throws IOException {
+    private void collectHits(final IndexSearcher searcher, final TopDocs topDocs, final SearchResults searchResults)
+            throws IOException {
         final List<SearchHit> hits = new ArrayList<SearchHit>(topDocs.scoreDocs.length);
 
         for (final ScoreDoc scoreDoc : topDocs.scoreDocs) {
             final Document doc = searcher.doc(scoreDoc.doc);
-
-            final List<Object> order;
-            if (scoreDoc instanceof FieldDoc) {
-                final FieldDoc fieldDoc = (FieldDoc) scoreDoc;
-                order = new ArrayList<Object>(fieldDoc.fields.length + 1);
-                order.addAll(Arrays.asList(fieldDoc.fields));
-                order.add(doc.get("_id"));
-            } else {
-                order = Arrays.asList(scoreDoc.score, doc.get("_id"));
-            }
 
             final List<IndexableField> fields = new ArrayList<IndexableField>(doc.getFields());
             for (IndexableField field : doc.getFields()) {
@@ -162,18 +148,21 @@ public class SearchResource {
                 }
             }
 
-            hits.add(new SearchHit(doc.get("_id"), order, fields));
+            hits.add(new SearchHit(doc.get("_id"), (FieldDoc) scoreDoc, fields));
         }
 
         searchResults.setTotalHits(topDocs.totalHits.value);
         searchResults.setHits(hits);
     }
 
-    private void collectFacets(final SearchRequest searchRequest, final IndexSearcher searcher, final FacetsCollector fc, final SearchResults searchResults) throws IOException {
+    private void collectFacets(final SearchRequest searchRequest, final IndexSearcher searcher,
+            final FacetsCollector fc, final SearchResults searchResults) throws IOException {
         if (searchRequest.hasCounts()) {
-            final Map<String, Map<String, Number>> countsMap = new HashMap<String, Map<String, Number>>(searchRequest.getCounts().size());
+            final Map<String, Map<String, Number>> countsMap = new HashMap<String, Map<String, Number>>(
+                    searchRequest.getCounts().size());
             for (final String field : searchRequest.getCounts()) {
-                final StringDocValuesReaderState state = new StringDocValuesReaderState(searcher.getIndexReader(), field);
+                final StringDocValuesReaderState state = new StringDocValuesReaderState(searcher.getIndexReader(),
+                        field);
                 final StringValueFacetCounts counts = new StringValueFacetCounts(state, fc);
                 countsMap.put(field, collectFacets(counts, searchRequest.getTopN(), field));
             }
@@ -181,22 +170,44 @@ public class SearchResource {
         }
 
         if (searchRequest.hasRanges()) {
-            final Map<String, Map<String, Number>> rangesMap = new HashMap<String, Map<String, Number>>(searchRequest.getRanges().size());
+            final Map<String, Map<String, Number>> rangesMap = new HashMap<String, Map<String, Number>>(
+                    searchRequest.getRanges().size());
             for (final Entry<String, List<DoubleRange>> entry : searchRequest.getRanges().entrySet()) {
-                final DoubleRangeFacetCounts counts = new DoubleRangeFacetCounts(entry.getKey(), fc, entry.getValue().toArray(EMPTY_DOUBLE_RANGE_ARRAY));
+                final DoubleRangeFacetCounts counts = new DoubleRangeFacetCounts(entry.getKey(), fc,
+                        entry.getValue().toArray(EMPTY_DOUBLE_RANGE_ARRAY));
                 rangesMap.put(entry.getKey(), collectFacets(counts, searchRequest.getTopN(), entry.getKey()));
             }
             searchResults.setRanges(rangesMap);
         }
     }
 
-    private Map<String, Number> collectFacets(final Facets facets, final int topN, final String dim) throws IOException {
+    private Map<String, Number> collectFacets(final Facets facets, final int topN, final String dim)
+            throws IOException {
         final FacetResult topChildren = facets.getTopChildren(topN, dim);
         final Map<String, Number> result = new HashMap<String, Number>(topChildren.childCount);
         for (final LabelAndValue lv : topChildren.labelValues) {
             result.put(lv.label, lv.value);
         }
         return result;
+    }
+
+    // Ensure _id is final sort field so we can paginate.
+    private Sort toSort(final SearchRequest searchRequest) {
+        if (!searchRequest.hasSort()) {
+            return DEFAULT_SORT;
+        }
+
+        final List<String> sort = new ArrayList<String>(searchRequest.getSort());
+        final String last = sort.get(sort.size() - 1);
+        // Append _id field if not already present.
+        switch(last) {
+            case "-_id<string>":
+            case "_id<string>":
+                break;
+            default:
+            sort.add("_id<string>");
+        }
+        return convertSort(sort);
     }
 
     private Sort convertSort(final List<String> sort) {
