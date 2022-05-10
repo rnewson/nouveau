@@ -225,15 +225,9 @@ public class SearchResource {
                     sortString + " is not a valid sort parameter", Status.BAD_REQUEST);
         }
         final boolean reverse = "-".equals(m.group(1));
-        final SortField.Type type;
-        switch (m.group(3)) {
-            case "string":
-                type = SortField.Type.STRING;
-                break;
-            case "number":
-            default:
-                type = SortField.Type.DOUBLE;
-                break;
+        SortField.Type type = SortField.Type.DOUBLE;
+        if ("string".equals(m.group(3))) {
+            type = SortField.Type.STRING;
         }
         return new SortField(m.group(2), type, reverse);
     }
