@@ -36,15 +36,36 @@ public class FieldDocSerializer extends StdSerializer<FieldDoc> {
     @Override
     public void serialize(final FieldDoc fieldDoc, final JsonGenerator gen, final SerializerProvider provider)
             throws IOException {
+        // We ignore fieldDoc.score as it will be in the fields array if we're sorting for relevance.
+        // We ignore fieldDoc.doc as _id is always the last field and is unique.
         gen.writeStartArray();
+        // Preserve type information for correct deserialization of cursor.
         for (final Object o : fieldDoc.fields) {
-            if (o instanceof BytesRef) {
-                gen.writeString(((BytesRef) o).utf8ToString());
+            gen.writeStartObject();
+            if (o instanceof String) {
+                gen.writeStringField("type", "string");
+                gen.writeStringField("value", (String) o);
+            } else if (o instanceof BytesRef) {
+                final BytesRef bytesRef = (BytesRef) o;
+                gen.writeStringField("type", "bytes");
+                gen.writeFieldName("value");
+                gen.writeBinary(bytesRef.bytes, bytesRef.offset, bytesRef.length);
+            } else if (o instanceof Float) {
+                gen.writeStringField("type", "float");
+                gen.writeNumberField("value", (Float) o);
             } else if (o instanceof Double) {
-                gen.writeNumber(((Double)o));
-            }else if (o instanceof Float) {
-                gen.writeNumber(((Float)o));
+                gen.writeStringField("type", "double");
+                gen.writeNumberField("value", (Double) o);
+            } else if (o instanceof Integer) {
+                gen.writeStringField("type", "int");
+                gen.writeNumberField("value", (Integer) o);
+            } else if (o instanceof Long) {
+                gen.writeStringField("type", "long");
+                gen.writeNumberField("value", (Long) o);
+            } else {
+                throw new IOException(o.getClass() + " not supported");
             }
+            gen.writeEndObject();
         }
         gen.writeEndArray();
     }

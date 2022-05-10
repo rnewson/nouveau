@@ -28,7 +28,6 @@ import org.apache.lucene.util.BytesRef;
 
 public class FieldDocDeserializer extends StdDeserializer<FieldDoc> {
 
-
     public FieldDocDeserializer() {
         this(null);
     }
@@ -39,19 +38,35 @@ public class FieldDocDeserializer extends StdDeserializer<FieldDoc> {
 
     @Override
     public FieldDoc deserialize(final JsonParser parser, final DeserializationContext context)
-    throws IOException, JsonProcessingException {
+            throws IOException, JsonProcessingException {
         ArrayNode fieldNode = (ArrayNode) parser.getCodec().readTree(parser);
         final Object[] fields = new Object[fieldNode.size()];
         for (int i = 0; i < fields.length; i++) {
             final JsonNode field = fieldNode.get(i);
-            if (field.isTextual()) {
-                fields[i] = new BytesRef(field.asText());
-            } else if (field.isNumber()) {
-                fields[i] = (float) field.asDouble();
-            } else {
-                throw new IOException("Unsupported field value: " + field);
+            switch (field.get("type").asText()) {
+                case "string":
+                    fields[i] = field.get("value").asText();
+                    break;
+                case "bytes":
+                    fields[i] = new BytesRef(field.get("value").binaryValue());
+                    break;
+                case "float":
+                    fields[i] = field.get("value").floatValue();
+                    break;
+                case "double":
+                    fields[i] = field.get("value").doubleValue();
+                    break;
+                case "int":
+                    fields[i] = field.get("value").intValue();
+                    break;
+                case "long":
+                    fields[i] = field.get("value").longValue();
+                    break;
+                default:
+                    throw new IOException("Unsupported field value: " + field);
             }
         }
+        // TODO .doc should be Long.MAX_VALUE if we invert the sort
         return new FieldDoc(0, Float.NaN, fields);
     }
 
