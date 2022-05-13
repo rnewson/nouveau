@@ -117,11 +117,26 @@ public class SearchResource {
 
     private CollectorManager<?, ? extends TopDocs> hitCollector(final SearchRequest searchRequest) {
         final Sort sort = toSort(searchRequest);
+
+        final FieldDoc after = searchRequest.getAfter();
+        if (after != null) {
+            if (getLastSortField(sort).getReverse()) {
+                after.doc = 0;
+            } else {
+                after.doc = Integer.MAX_VALUE;
+            }
+        }
+
         return TopFieldCollector.createSharedManager(
                 sort,
                 searchRequest.getLimit(),
-                searchRequest.getAfter(),
+                after,
                 1000);
+    }
+
+    private SortField getLastSortField(final Sort sort) {
+        final SortField[] sortFields = sort.getSort();
+        return sortFields[sortFields.length - 1];
     }
 
     private SearchResults toSearchResults(final SearchRequest searchRequest, final IndexSearcher searcher,
