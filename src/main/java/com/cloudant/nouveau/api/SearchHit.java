@@ -15,12 +15,12 @@
 package com.cloudant.nouveau.api;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.search.FieldDoc;
 
 import io.dropwizard.jackson.JsonSnakeCase;
 
@@ -31,7 +31,7 @@ public class SearchHit {
     private String id;
 
     @NotNull
-    private List<@NotNull Object> order;
+    private FieldDoc order;
 
     @NotNull
     private Collection<@NotNull IndexableField> fields;
@@ -39,7 +39,7 @@ public class SearchHit {
     public SearchHit() {
     }
 
-    public SearchHit(final String id, final List<Object> order, final Collection<IndexableField> fields) {
+    public SearchHit(final String id, final FieldDoc order, final Collection<IndexableField> fields) {
         this.id = id;
         this.order = order;
         this.fields = fields;
@@ -49,7 +49,7 @@ public class SearchHit {
         return id;
     }
 
-    public List<Object> getOrder() {
+    public FieldDoc getOrder() {
         return order;
     }
 

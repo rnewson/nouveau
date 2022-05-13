@@ -14,6 +14,7 @@
 
 package com.cloudant.nouveau.core.ser;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,7 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -93,5 +95,25 @@ public class LuceneModuleTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testSerializeFieldDoc() throws Exception {
+        final FieldDoc fieldDoc = new FieldDoc(1, 2.0f, new Object[] {
+                Float.valueOf(1),
+                Double.valueOf(2),
+                Integer.valueOf(3),
+                Long.valueOf(4),
+                "foo",
+                new BytesRef("bar") });
+
+        final String expected = "[{\"type\":\"float\",\"value\":1.0},{\"type\":\"double\",\"value\":2.0},{\"type\":\"int\",\"value\":3},{\"type\":\"long\",\"value\":4},{\"type\":\"string\",\"value\":\"foo\"},{\"type\":\"bytes\",\"value\":\"YmFy\"}]";
+        final String actual = mapper.writeValueAsString(fieldDoc);
+        assertEquals(expected, actual);
+
+        final FieldDoc fieldDoc2 = mapper.readValue(expected, FieldDoc.class);
+
+        for (int i = 0; i < fieldDoc.fields.length; i++) {
+            assertThat(fieldDoc.fields[i].getClass()).isEqualTo(fieldDoc2.fields[i].getClass());
+        }
+    }
 
 }

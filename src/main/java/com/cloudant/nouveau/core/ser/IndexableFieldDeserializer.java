@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.apache.lucene.document.BinaryDocValuesField;
 import org.apache.lucene.document.DoubleDocValuesField;
 import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.FloatDocValuesField;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
@@ -66,6 +67,7 @@ class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
             case double_point:
                 return new DoublePoint(name, node.get("value").doubleValue());
             case float_dv:
+                return new FloatDocValuesField(name, node.get("value").floatValue());
             case float_point:
                 return new FloatPoint(name, node.get("value").floatValue());
             case latlon_dv:
