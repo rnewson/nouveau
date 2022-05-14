@@ -3,13 +3,34 @@ Lucene 9 + DropWizard = Maybe a good search option for Apache CouchDB?
 
 Nouveau is an experimental search extension for CouchDB 3.x.
 
-What works? Not much yet but the basic shape is there. You can search and get the hits but
-there's no support for facets, etc.
+## What works?
+
+* you can define a default analyzer and different analyzers by field name.
+* sorting on text and numbers
+* classic lucene query syntax
+* count and range facets
+* cursor support for paginating efficiently through large results sets
+* indexes automatically deleted if database is deleted (as long as nouveau is running!)
+* integration with ken
+
+## What doesn't work yet?
+
+* No support for results grouping
+* No support for stale=ok
+* No integration with mango
+* No support to configure stop words for analyzers
+
+## Why is this better than dreyfus/clouseau?
+
+* No scalang (or Scala!)
+* Supports any version of Java that Lucene 9 supports
+* memory-mapped I/O for performance
+* direct I/O used for segment merging (so we don't evict useful data from disk cache)
+* It's new and shiny.
 
 ## Erlang side
 
-there's some essential Erlang plumbing in https://github.com/rnewson/couchdb-nouveau
-
+You'll need to run a fork of couchdb: https://github.com/rnewson/couchdb-nouveau
 
 ## Getting started
 
@@ -35,7 +56,7 @@ URL="http://foo:bar@127.0.0.1:15984/foo"
 curl -X DELETE "$URL"
 curl -X PUT "$URL?n=3&q=16"
 
-curl -X PUT "$URL/_design/foo" -d '{"indexes":{"bar":{"analyzer":"standard", "index":"function(doc) { index(\"foo\", \"bar\", {\"store\":true}); index(\"bar\", doc.bar, {\"store\":true,\"facet\":true}); }"}}}'
+curl -X PUT "$URL/_design/foo" -d '{"indexes":{"bar":{"default_analyzer":"standard", "field_analyzers":{"foo":"english"}, "index":"function(doc) { index(\"foo\", \"bar\", {\"store\":true}); index(\"bar\", doc.bar, {\"store\":true,\"facet\":true}); }"}}}'
 
 for I in {1..100}; do
     DOCID=$RANDOM
@@ -60,4 +81,6 @@ Facet support
 
 Counts of string fields and Ranges for numeric fields;
 
+```
 curl 'foo:bar@localhost:15984/foo/_design/foo/_nsearch/bar?q=*:*&limit=1&ranges={"bar":[{"label":"cheap","min":0,"max":100}]}&counts=["foo"]' -g
+```
