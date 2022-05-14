@@ -116,11 +116,11 @@ public class IndexManager implements Managed {
             return queryParser.get();
         }
 
-        public void commit() throws IOException {
+        public boolean commit() throws IOException {
             rl.lock();
             try {
-                writer.setLiveCommitData( generateCommitData().entrySet());
-                writer.commit();
+                writer.setLiveCommitData(generateCommitData().entrySet());
+                return writer.commit() != -1;
             } finally {
                 rl.unlock();
             }
@@ -200,8 +200,9 @@ public class IndexManager implements Managed {
         @Override
         public @Nullable Index reload(@NonNull String name, @NonNull Index index) throws Exception {
             try {
-                index.commit();
-                LOGGER.info("{} committed.", index);
+                if (index.commit()) {
+                    LOGGER.info("{} committed.", index);
+                }
             } catch (final IOException e) {
                 LOGGER.error(index + " threw exception when committing.", e);
                 index.close();
