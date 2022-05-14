@@ -47,6 +47,7 @@ import com.github.benmanes.caffeine.cache.Scheduler;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.misc.store.DirectIODirectory;
 import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.Sort;
@@ -464,7 +465,7 @@ public class IndexManager implements Managed {
     }
 
     private Directory directory(final Path path) throws IOException {
-        return FSDirectory.open(path);
+        return new DirectIODirectory(FSDirectory.open(path));
     }
 
 }
