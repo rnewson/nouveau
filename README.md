@@ -12,11 +12,12 @@ Nouveau is an experimental search extension for CouchDB 3.x.
 * cursor support for paginating efficiently through large results sets
 * indexes automatically deleted if database is deleted (as long as nouveau is running!)
 * integration with ken
+* update=false
 
 ## What doesn't work yet?
 
 * No support for results grouping
-* No support for stale=ok
+* ~~No support for stale=ok~~
 * No integration with mango
 * No support to configure stop words for analyzers
 
