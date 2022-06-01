@@ -16,7 +16,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <argLine>-Duser.language=en -Duser.region=US -Duser.timezone=UTC</argLine>
-    <dropwizard.version>2.0.29</dropwizard.version>
+    <dropwizard.version>2.1.0</dropwizard.version>
     <lucene.version>9.2.0</lucene.version>
     <slf4j.version>1.7.32</slf4j.version>
     <junit5.version>5.8.2</junit5.version>
