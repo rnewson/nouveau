@@ -9,6 +9,10 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.apache.lucene.geo.GeoEncodingUtils;
 import org.apache.lucene.geo.XYEncodingUtils;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.spatial3d.Geo3DDocValuesField;
+import org.apache.lucene.spatial3d.Geo3DPoint;
+import org.apache.lucene.spatial3d.geom.GeoPoint;
+import org.apache.lucene.spatial3d.geom.PlanetModel;
 import org.apache.lucene.util.BytesRef;
 
 class IndexableFieldSerializer extends StdSerializer<IndexableField> {
@@ -38,6 +42,21 @@ class IndexableFieldSerializer extends StdSerializer<IndexableField> {
             case float_point:
                 gen.writeNumberField("value", field.numericValue().floatValue());
                 break;
+            case geo3d_dv: {
+                final Long value = (Long) field.numericValue();
+                final GeoPoint point = PlanetModel.WGS84.getDocValueEncoder().decodePoint(value);
+                gen.writeNumberField("x", point.x);
+                gen.writeNumberField("y", point.y);
+                gen.writeNumberField("z", point.z);
+                break;
+            }
+            case geo3d_point: {
+                final BytesRef bytesRef = field.binaryValue();
+                gen.writeNumberField("x", Geo3DPoint.decodeDimension(bytesRef.bytes, 0, PlanetModel.WGS84));
+                gen.writeNumberField("y", Geo3DPoint.decodeDimension(bytesRef.bytes, Integer.BYTES, PlanetModel.WGS84));
+                gen.writeNumberField("z", Geo3DPoint.decodeDimension(bytesRef.bytes, 2 * Integer.BYTES, PlanetModel.WGS84));
+                break;
+            }
             case int_point:
                 gen.writeNumberField("value", field.numericValue().intValue());
                 break;

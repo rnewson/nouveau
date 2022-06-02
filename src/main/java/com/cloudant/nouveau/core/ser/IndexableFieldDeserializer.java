@@ -41,6 +41,9 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYDocValuesField;
 import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.spatial3d.Geo3DDocValuesField;
+import org.apache.lucene.spatial3d.Geo3DPoint;
+import org.apache.lucene.spatial3d.geom.PlanetModel;
 import org.apache.lucene.util.BytesRef;
 
 class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
@@ -70,6 +73,12 @@ class IndexableFieldDeserializer extends StdDeserializer<IndexableField> {
                 return new FloatDocValuesField(name, node.get("value").floatValue());
             case float_point:
                 return new FloatPoint(name, node.get("value").floatValue());
+            case geo3d_dv:
+                return new Geo3DDocValuesField(name, node.get("x").doubleValue(),
+                    node.get("y").doubleValue(), node.get("z").doubleValue(), PlanetModel.WGS84);
+            case geo3d_point:
+                return new Geo3DPoint(name, node.get("x").doubleValue(),
+                    node.get("y").doubleValue(), node.get("z").doubleValue());
             case latlon_dv:
                 return new LatLonDocValuesField(name, node.get("lat").doubleValue(), node.get("lon").doubleValue());
             case latlon_point:

@@ -32,6 +32,8 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.XYDocValuesField;
 import org.apache.lucene.document.XYPointField;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.spatial3d.Geo3DDocValuesField;
+import org.apache.lucene.spatial3d.Geo3DPoint;
 
 enum SupportedType {
 
@@ -40,6 +42,8 @@ enum SupportedType {
     double_point(DoublePoint.class),
     float_dv(FloatDocValuesField.class),
     float_point(FloatPoint.class),
+    geo3d_dv(Geo3DDocValuesField.class),
+    geo3d_point(Geo3DPoint.class),
     int_point(IntPoint.class),
     latlon_dv(LatLonDocValuesField.class),
     latlon_point(LatLonPoint.class),
