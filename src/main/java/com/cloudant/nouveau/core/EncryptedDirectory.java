@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.SecureRandom;
+import java.util.zip.CRC32;
 
 import javax.crypto.Cipher;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.lucene.codecs.CodecUtil;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FilterDirectory;
 import org.apache.lucene.store.IOContext;
@@ -63,7 +65,7 @@ public final class EncryptedDirectory extends FilterDirectory {
                 in.readBytes(wekBytes, 0, wekLen);
                 final Cipher wrap = Cipher.getInstance("AESWrap");
                 wrap.init(Cipher.UNWRAP_MODE, kek);
-                this.dek = wrap.unwrap(wekBytes, "AES",Cipher.SECRET_KEY);
+                this.dek = wrap.unwrap(wekBytes, "AES", Cipher.SECRET_KEY);
 
                 c = Cipher.getInstance("AES/CTR/NoPadding");
                 c.init(Cipher.DECRYPT_MODE, dek, new IvParameterSpec(new byte[16]));
@@ -136,6 +138,9 @@ public final class EncryptedDirectory extends FilterDirectory {
         private final IndexOutput out;
         private final Cipher c;
         private final int headerLen;
+        private final CRC32 crc = new CRC32();
+        private final byte[] buf = new byte[1024];
+        private boolean closed = false;
 
         private EncryptedIndexOutput(final Key kek, final IndexOutput out) throws IOException {
             super("EncryptedIndexOutput(path=\"" + out.getName() + "\")", out.getName());
@@ -161,7 +166,11 @@ public final class EncryptedDirectory extends FilterDirectory {
 
         @Override
         public void close() throws IOException {
-            out.close();
+            if (!closed) {
+                closed = true;
+                CodecUtil.writeFooter(out);
+                out.close();
+            }
         }
 
         @Override
@@ -171,23 +180,22 @@ public final class EncryptedDirectory extends FilterDirectory {
 
         @Override
         public long getChecksum() throws IOException {
-            return out.getChecksum();
+            return crc.getValue();
         }
 
         @Override
         public void writeByte(byte b) throws IOException {
-            final byte[] buf = new byte[1];
-            try {
-                c.update(buf, 0, 1, buf, 0);
-            } catch (final ShortBufferException e) {
-                throw convertGeneralSecurityException(e);
-            }
-            out.writeByte(buf[0]);
+            buf[0] = b;
+            writeBytes(buf, 0, 1);
         }
 
         @Override
         public void writeBytes(byte[] b, int offset, int length) throws IOException {
-            final byte[] buf = new byte[length];
+            crc.update(b, offset, length);
+            byte[] buf = this.buf;
+            if (length > this.buf.length) {
+                buf = new byte[length];
+            }
             try {
                 c.update(b, offset, length, buf, 0);
             } catch (final ShortBufferException e) {
