@@ -213,7 +213,7 @@ public class IndexManager implements Managed {
 
     }
 
-    private class IndexCloser implements RemovalListener<String, Index> {
+    private static class IndexCloser implements RemovalListener<String, Index> {
 
         public void onRemoval(String name, Index index, RemovalCause cause) {
             try {
@@ -223,6 +223,8 @@ public class IndexManager implements Managed {
             }
         }
     }
+
+    private static final IndexCloser INDEX_CLOSER = new IndexCloser();
 
 
     @Min(1)
@@ -364,8 +366,8 @@ public class IndexManager implements Managed {
             .expireAfterWrite(Duration.ofSeconds(idleSeconds))
             .refreshAfterWrite(Duration.ofSeconds(commitIntervalSeconds))
             .scheduler(Scheduler.systemScheduler())
-            .removalListener(new IndexCloser())
-            .evictionListener(new IndexCloser())
+            .removalListener(INDEX_CLOSER)
+            .evictionListener(INDEX_CLOSER)
             .build(new IndexLoader());
     }
 
