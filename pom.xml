@@ -7,7 +7,7 @@
   <artifactId>nouveau</artifactId>
   <version>0.2.0-SNAPSHOT</version>
   <name>${project.artifactId}</name>
-  <description>Full-text indexing for Cloudant</description>
+  <description>Full-text indexing for CouchDB</description>
   <inceptionYear>2022</inceptionYear>
 
   <properties>
@@ -16,7 +16,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <argLine>-Duser.language=en -Duser.region=US -Duser.timezone=UTC</argLine>
-    <dropwizard.version>2.1.0</dropwizard.version>
+    <dropwizard.version>2.1.1</dropwizard.version>
     <lucene.version>9.2.0</lucene.version>
     <slf4j.version>1.7.32</slf4j.version>
     <junit5.version>5.8.2</junit5.version>
@@ -31,6 +31,13 @@
 		<type>pom</type>
 		<scope>import</scope>
 	  </dependency>
+      <dependency>
+        <groupId>io.dropwizard</groupId>
+        <artifactId>dropwizard-dependencies</artifactId>
+        <version>${dropwizard.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 	</dependencies>
   </dependencyManagement>
 
@@ -91,14 +98,16 @@
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
-      <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-afterburner</artifactId>
     </dependency>
 
     <!-- Test -->
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
-      <version>${dropwizard.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

@@ -30,7 +30,7 @@ import com.cloudant.nouveau.resources.AnalyzeResource;
 import com.cloudant.nouveau.resources.IndexResource;
 import com.cloudant.nouveau.resources.SearchResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -58,7 +58,7 @@ public class NouveauApplication extends Application<NouveauApplicationConfigurat
         searcherFactory.setExecutor(searchExecutor);
 
         final ObjectMapper objectMapper = environment.getObjectMapper();
-        objectMapper.registerModule(new BlackbirdModule());
+        objectMapper.registerModule(new AfterburnerModule());
         objectMapper.registerModule(new LuceneModule());
 
         final IndexManager indexManager = new IndexManager();
